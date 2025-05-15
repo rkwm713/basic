@@ -100,8 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const proposedRiser = getProposedEquipment(node, data.connections, 'riser'); // Simplified
                 const proposedGuy = getProposedEquipment(node, data.connections, 'guy'); // Simplified
 
-                const pla = formatPercentage(getAttributeValue(attributes.final_passing_capacity_p, ['assessment', '-ONzZigRJczUNfA6wSoG', '-ONzZihf2oHcPH25VAt5'])) || // Check multiple possible keys
-                              formatPercentage(getAttributeValue(attributes['final_passing_capacity_%'], ['assessment', '-ONzZigRJczUNfA6wSoG', '-ONzZihf2oHcPH25VAt5'])) || 'NA';
+                const pla = formatPercentage(getAttributeValue(attributes, ['final_passing_capacity_p'])) ||
+                              formatPercentage(getAttributeValue(attributes, ['final_passing_capacity_%'])) || 'NA';
 
 
                 const constructionGrade = getAttributeValue(attributes.pole_class, ['one']) || 'NA'; // Per mapping doc
@@ -428,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
-        return minHeightInches === Infinity ? "" : inchesToFeet(minHeightInches);
+        return minHeightInches === Infinity ? "" : formatHeightFtIn(minHeightInches);
     }
 
     function getMidspanProposedHeight(poleAttachmentTraceId, poleAttachmentMrMoveInches, currentNodeId, connections, allPhotosData, allTracesData) {
@@ -459,7 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                                     const midspanMeasuredHeightInches = parseFloat(wire._measured_height);
                                                     if (!isNaN(midspanMeasuredHeightInches)) {
                                                         const proposedMidspanHeightInches = midspanMeasuredHeightInches + mrMoveInchesNum;
-                                                        return inchesToFeet(proposedMidspanHeightInches);
+                                                        return formatHeightFtIn(proposedMidspanHeightInches);
                                                     }
                                                 }
                                             }

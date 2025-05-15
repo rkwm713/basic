@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Report Generator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Make-Ready Excel Report Generator</h1>
+
+    <div class="container">
+        <div class="upload-section">
+            <div class="upload-zone" id="spidaDropZone">
+                <p class="upload-zone-text">
+                    Drag & drop your SPIDAcalc JSON file here<br>
+                    or <strong>click to browse</strong>
+                </p>
+                <input type="file" id="spidaFile" accept=".json">
+            </div>
+        </div>
+
+        <div class="upload-section">
+            <div class="upload-zone" id="katapultDropZone">
+                <p class="upload-zone-text">
+                    Drag & drop your Katapult JSON file here<br>
+                    or <strong>click to browse</strong>
+                </p>
+                <input type="file" id="katapultFile" accept=".json">
+            </div>
+        </div>
+
+        <button id="processButton">Process & Download Excel</button>
+
+        <div id="statusArea">
+            <p>Please upload both JSON files and click the button.</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

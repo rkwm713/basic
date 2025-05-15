@@ -1,0 +1,101 @@
+Operation Number	"Attachment Action:
+( I )nstalling
+( R )emoving
+( E )xisting"	Pole Owner	Pole #	Pole Structure	Proposed Riser (Yes/No) &	Proposed Guy (Yes/No) &	PLA (%) with proposed attachment	Construction Grade of Analysis	Existing Mid-Span Data		 Make Ready Data			
+												Attachment Height		"Mid-Span
+(same span as existing)"
+									Height Lowest Com	Height Lowest CPS Electrical	Attacher Description	Existing	Proposed	Proposed
+1	( I )nstalling	CPS	PL410620	40-4 Southern Pine	NO	NO	78.70%	C	"14'-10"""	"23'10"""	Neutral	"29'-6"""		
+											CPS Supply Fiber	"28'-0"""		
+											Charter/Spectrum Fiber Optic		"24'-7"""	"21'-1"""
+											AT&T Fiber Optic Com	"23'-7"""		
+											AT&T Telco Com	"22'-4"""		
+											AT&T Com Drop	"21'-5"""		"15'-10"""
+									From Pole	To Pole				
+									PL410620	PL398491				
+2	( I )nstalling	CPS	PL398491	45-2 Southern Pine	YES (1)	YES (1)	62.08%	C	NA	NA	Neutral	"27'-1"""		
+											CPS Top Bracket Street Light	"26'-3"""	"24'-7"""	
+											CPS Supply Fiber	"25'-8"""		
+											CPS Bottom Bracket Street Light	"25'-7"""	"23'-11"""	
+											CPS Supply Fiber	"25'-6"""		
+											CPS Secondary Drip Loop	"25'-5"""	"26'-7"""	
+											CPS Street Light Drip Loop	"24'-9"""	"23'-4"""	
+											Charter/Spectrum Fiber Optic		"22'-4"""	UG
+											Charter/Spectrum Down Guy		"22'-4"""	
+											AT&T Fiber Optic Com	"21'-4"""		"16'-4"""
+											AT&T Telco Com	"20'-4"""		"15'-1"""
+											AT&T Com Drop	"19'-8"""		
+											AT&T Com Drop	"19'-8"""		
+											AT&T Com Drop	"19'-6"""		
+											AT&T Com Drop	"19'-5"""		
+											CPS Energy Down guy	"33'-9"""		
+											CPS Energy Down guy	"26'-4"""		
+											Charter Communication Riser 		"21'-4"""	
+											Ref (North East) to service pole			
+											CPS Service	"27'-1"""		"18'-0"""
+											AT&T Com Drop	"19'-8"""		"11'-10"""
+											AT&T Com Drop	"19'-6"""		"11'-9"""
+											Ref (South East) to Pl401451			
+											Neutral	"26'-11"""		
+														
+														
+									From Pole	To Pole				
+									PL398491	PL401451				
+3	( I )nstalling	CPS	PL389359	45-4 Southern Pine	YES (1)	YES (1)	84.86%	C	"17'-8"""	"22'-8"""	Neutral	"27'-3"""		
+											CPS Supply Fiber	"25'-9"""		
+											Charter/Spectrum Fiber Optic		"23'-0"""	"18'-8"""
+											Charter/Spectrum Down Guy		"23'-0"""	
+											AT&T Fiber Optic Com	"22'-8"""	"22'-0"""	"17'-3"""
+											AT&T Telco Com	"21'-8"""	"21'-0"""	"16'-3"""
+											Backspan			
+											Charter Communication Riser 	"22'-0"""		
+											Ref (North East) PL413713			
+											Neutral	"27'-3"""		
+											Ref (North West) to PL1401451			
+											Neutral	"27'-3"""		
+											CPS Supply Fiber	"25'-9"""		
+									From Pole	To Pole	AT&T Fiber Optic Com	"22'-8"""	"22'-0"""	"20'-1"""
+									PL389359	PL404474	AT&T Telco Com	"21'-8"""	"21'-0"""	"17'-10"""
+4	( I )nstalling	CPS	PL404474	40-3 Southern Pine	NO	NO	59.84%	C	"19'-6"""	"23'-8"""	Neutral	"26'-0"""		
+											CPS Street Light Feed	"26'-0"""		"24'-6"""
+											CPS Supply Fiber	"24'-6"""		
+											CPS Top Bracket Street Light	"23'-6"""		
+											CPS Drip Loop Street Light	"23'-0"""		
+											Charter/Spectrum Fiber Optic		"21'-7"""	"21'-3"""
+											AT&T Fiber Optic Com	"22'-9"""	"20'-7"""	"19'-1"""
+											AT&T Telco Com	"21'-7"""	"19'-7"""	"18'-0"""
+									From Pole	To Pole				
+									PL404474	PL900997				
+5	( I )nstalling	CPS	PL900997	45-2 Southern Pine	YES (1)	YES (1)	64.73%	C	NA	NA	Neutral	"27'-1"""		
+											CPS Street Light Feed	"27'-1"""		
+											CPS Supply Fiber	"25'-10"""		
+											CPS Drip Loop Secondary	"25'-8"""		
+											CPS Top Bracket Street Light	"25'-0"""		
+											CPS Drip Loop Street Light	"23'-11"""		
+											Charter/Spectrum Fiber Optic		"21'-6"""	UG
+											Charter/Spectrum Down Guy		"21'-6"""	
+											AT&T Fiber Optic Com	"21'-6"""	"20'-6"""	
+											AT&T Telco Com	"20'-6"""	"19'-6"""	
+											Charter Communication Riser 		"20'-6"""	
+											Ref (South East) to service pole 			
+											CPS Service	"27'-1"""		"18'0"""
+											Ref (South East) to PL398490			
+											Neutral	"27'-1"""		
+											CPS Supply Fiber	"25'-10"""		
+											AT&T Fiber Optic Com	"21'-6"""	"20'-6"""	"21'-7"""
+											AT&T Telco Com	"20'-6"""	"19'-6"""	"20'-6"""
+									From Pole	To Pole				
+									PL900997	PL398490				
+6	( I )nstalling	CPS	PL370858	45-2 Southern Pine	YES (1)	YES (1)	42.55%	C	"20'-8"""	"21'-7"""	Neutral	"26'-6"""		
+											CPS Supply Fiber	"25'-5"""		
+											Charter/Spectrum Fiber Optic		"22'-1"""	"22'-1"""
+											AT&T Fiber Optic Com	"22'-10"""	"21'-1"""	"20'-9"""
+											AT&T Telco Com	"21'-10"""	"20'-1"""	"19'-10"""
+											Charter Down Guy		"22'-1"""	
+											Backspan			
+											Charter Communication Riser 		"21'-1"""	
+											Ref (North West) to PL379971			
+											Neutral	"26'-6"""		
+											CPS Supply Fiber	"25'-5"""		
+									From Pole	To Pole	AT&T Fiber Optic Com	"22'-10"""	"21'-10"""	"17'-5"""
+									PL370858	PL3268481	AT&T Telco Com	"21'-10"""	"20'-10"""	"17'-0"""

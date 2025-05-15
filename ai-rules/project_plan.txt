@@ -1,0 +1,157 @@
+I understand you're looking for a set of `.clinerules` to guide your AI agent in developing the Python web app for processing your SPIDAcalc and Katapult JSON files and generating the Excel report.
+
+While I can't directly generate a `.clinerules` file (as that's a specific format I'm not equipped to produce), I can provide you with a structured breakdown of the rules, objectives, and logic your AI agent would need to follow. You can then translate these into the specific syntax of your `.clinerules` system.
+
+This breakdown is based on the goals we've identified from your `app.py` and our discussions around the `SPIDAcalc.json`, `Katapult.json`, and the desired Excel output.
+
+**Conceptual Rules/Objectives for AI Agent (to be translated into `.clinerules`):**
+
+**Phase 1: Initialization and Core Setup**
+
+1.  **RULE: `LOAD_DATA_SOURCES`**
+    * **ACTION:** Load the SPIDAcalc JSON file content (referred to as `geojson_data` in `app.py` or `spidacalc_data`).
+    * **ACTION:** Load the Katapult JSON file content (referred to as `job_data` in `app.py` or `katapult_data`).
+    * **VERIFY:** Ensure both data sources are parsed correctly into accessible data structures (e.g., Python dictionaries).
+
+2.  **RULE: `ESTABLISH_POLE_MATCHING_KEY`**
+    * **IDENTIFY (SPIDA):** Determine the definitive field in `spidacalc_data` that represents the common Pole Number (e.g., `leads[0].locations[idx].label`). This will require processing (e.g., stripping prefixes like "1-") to achieve a "Canonical Pole ID Format".
+    * **IDENTIFY (Katapult):** Determine the definitive field in `katapult_data` that represents the common Pole Number (preferred: `nodes.[node_id].attributes.PoleNumber.assessment`). This should match the "Canonical Pole ID Format".
+    * **DEFINE:** "Canonical Pole ID Format" is a standardized string format for pole identifiers used for internal matching (e.g., "PLXXXXXX"). All source pole IDs must be converted to this format before matching.
+    * **NOTE:** This key is crucial for linking data across the two files.
+
+3.  **RULE: `CREATE_POLE_LOOKUP_MAPS`**
+    * **ACTION:** Implement a function (`_match_poles` in `app.py` context).
+    * **PROCESS (Katapult):** Iterate through `katapult_data.nodes` to create a map from the common Pole Number to the internal Katapult `node_id`.
+    * **PROCESS (SPIDA):** Create a list or map of SPIDAcalc pole identifiers that will be used to drive the report generation.
+    * **OUTPUT:** Store these mappings for efficient lookup during per-pole processing.
+
+4.  **RULE: `INITIALIZE_REPORT_DATAFRAME`**
+    * **ACTION:** Create an empty Pandas DataFrame (or equivalent data structure).
+    * **DEFINE_COLUMNS:** The DataFrame must have columns exactly matching the definitive list (reflected in `docs/excel_gener_details.txt` and based on initial references like the now-superseded `MRReportTester.txt`):
+        * "Operation Number"
+        * "Attachment Action:\n( I )nstalling\n( R )emoving\n( E )xisting"
+        * "Pole Owner"
+        * "Pole #"
+        * "Pole Structure"
+        * "Proposed Riser (Yes/No) &"
+        * "Proposed Guy (Yes/No) &"
+        * "PLA (%) with proposed attachment"
+        * "Construction Grade of Analysis"
+        * "Existing Mid-Span Data - Height Lowest Com"
+        * "Existing Mid-Span Data - Height Lowest CPS Electrical"
+        * "Make Ready Data - Attacher Description"
+        * "Make Ready Data - Attachment Height - Existing"
+        * "Make Ready Data - Attachment Height - Proposed"
+        * "Make Ready Data - Mid-Span (same span as existing) - Proposed"
+    * **STORE:** `self.report_df`
+
+**Phase 2: Per-Pole Data Extraction and Population**
+
+* **CONTEXT:** These rules apply within a loop iterating through each primary pole identifier (e.g., from the processed SPIDAcalc list). For each pole, its matched SPIDA and Katapult data objects must be available.
+
+5.  **RULE: `POPULATE_POLE_IDENTIFIERS`**
+    * **COLUMN A (Operation Number):** Assign a sequential number.
+    * **COLUMN D (Pole #):** Use the common Pole Number obtained from the matched `spida_pole_data` or `katapult_pole_data`.
+
+6.  **RULE: `POPULATE_POLE_OWNER_AND_STRUCTURE`**
+    * **COLUMN C (Pole Owner):**
+        * **Prioritization Rule:** Prioritize `Katapult_data.nodes.[node_id].attributes.pole_owner.multi_added[0]` if available and non-empty.
+        * **Fallback:** Otherwise, use `SPIDAcalc_data.leads[...].locations[...].structure.pole.owner.id`.
+    * **COLUMN E (Pole Structure):** Concatenate from `spida_pole_data.structure.pole.clientItem` fields: `height.value` (convert meters to feet), `classOfPole`, and `species`. Format as "Height-Class Species".
+
+7.  **RULE: `POPULATE_PROPOSED_GUY_RISER_INFO`**
+    * **COLUMN F (Proposed Riser):** Check `spidacalc_data`'s "Recommended Design" for the current pole: `designs[...].structure.equipments` where `equipment['clientItem']['type'] == "RISER"`. Output "YES (count)" or "NO".
+    * **COLUMN G (Proposed Guy):** Check `spidacalc_data`'s "Recommended Design" for the current pole: `designs[...].structure.guys` array. Count elements. Output "YES (count)" or "NO".
+
+8.  **RULE: `POPULATE_ANALYSIS_DATA`**
+    * **CONTEXT:** Identify the target analysis case in `spida_pole_data.analysis` (e.g., "Light - Grade C" for "Recommended Design").
+    * **COLUMN H (PLA %):** From the target analysis case results, find where `component == "Pole"` and `analysisType == "STRESS"`. Use the `actual` value. Format as "XX.XX%".
+    * **COLUMN I (Construction Grade):** From `target_analysis_case.analysisCaseDetails.constructionGrade`.
+
+9.  **RULE: `POPULATE_EXISTING_MIDSPAN_DATA` (Columns J, K)**
+    * **ACTION:** Attempt to extract "Height Lowest Com" and "Height Lowest CPS Electrical" for *existing* mid-spans.
+    * **SOURCE_PRIORITY:**
+        1.  `Katapult_data.connections[connection_id].sections[section_id].multi_attributes` if specific field-verified mid-span values exist for the relevant span.
+        2.  If unavailable in Katapult, check if detailed clearance analysis from SPIDAcalc is parsable.
+    * **FALLBACK (Columns J, K):** If data is not found from either source, populate with "NA".
+    * **FORMAT:** Heights as "X'-Y\"".
+
+**Phase 3: Attachment Data and Span Connectivity**
+
+10. **RULE: `GROUP_AND_CONSOLIDATE_ATTACHMENTS_BY_SPAN`**
+    * **ACTION:** For the current pole, group attachments by the span/direction they belong to, based primarily on SPIDAcalc `wireEndPoints`. Consolidate attachment details from SPIDA & Katapult within each group.
+    * **PRIMARY SOURCE FOR GROUPING:** Iterate `spida_pole_data.designs["Recommended Design"].structure.wireEndPoints`. Each `wireEndPoint` defines a span group.
+    * **SPAN HEADER DETERMINATION (per `wireEndPoint`):**
+        *   If `wireEndPoint.type == "PREVIOUS_POLE"`, label is "Backspan".
+        *   Otherwise, calculate direction (N, NE, E, etc.) from `wireEndPoint.direction`. Identify target (e.g., from `wireEndPoint.structureLabel` or next pole). Construct label: "Ref ([Direction]) to [Target]".
+    * **ATTACHMENT ASSOCIATION:**
+        *   The `wireEndPoint.wires` array contains IDs of attachments (wires/equipment) on that specific span.
+        *   For each attachment ID in `wireEndPoint.wires`:
+            *   Retrieve full attachment details from SPIDA "Measured Design" (for existing state) and "Recommended Design" (for proposed state).
+            *   Retrieve corresponding Katapult attachment data if a match exists (for field-verified existing height).
+    * **CONSOLIDATION WITHIN GROUP (similar to old Rule 10 logic but per span):**
+        *   Define "Unique Attachment" within the context of this span (Owner + Type/Description Keyword).
+        *   Reconcile SPIDA & Katapult data for each unique attachment on this span. Prioritize Katapult existing height.
+    * **OUTPUT STRUCTURE (per pole):** A list of `span_group` objects. Each `span_group` object contains:
+        *   `span_header`: The determined string label (e.g., "Backspan", "Ref (North East) to service pole").
+        *   `span_pole_id_if_applicable`: The pole ID or description of the target, if part of the header.
+        *   `attachments_on_span`: A list of unique attachment objects for that span, each with: description, owner, existing_height (ft-in), proposed_height (ft-in), midspan_proposed (ft-in), type/usage group, etc.
+
+11. **RULE: `POPULATE_SPAN_HEADERS_AND_ATTACHMENT_ROWS` (Columns L-O)**
+    * **CONTEXT:** Iterate through the list of `span_group` objects created in Rule 10 for the current pole.
+    * **FOR EACH `span_group`:**
+        1.  **WRITE SPAN HEADER ROW:**
+            *   In Column L: Write `span_group.span_header`.
+            *   Columns M, N, O: Blank for this header row.
+        2.  **FOR EACH `attachment` in `span_group.attachments_on_span`:**
+            *   **COLUMN L (Attacher Description):** `attachment.description`.
+            *   **COLUMN M (Existing Height):** `attachment.existing_height`. (Prioritization logic for Katapult vs. SPIDA data is applied during Rule 10's consolidation). Blank if new. Format ft-in.
+            *   **COLUMN N (Proposed Height):** `attachment.proposed_height`. Format ft-in. Blank if removed or no change and not new.
+            *   **COLUMN O (Mid-Span Proposed):** `attachment.midspan_proposed`. (Source from Katapult `connections.sections` or SPIDA analysis, with fallback to "UG" or "NA" as defined, determined during Rule 10 or a sub-step). Format heights as "X'-Y\"".
+
+12. **RULE: `DETERMINE_ATTACHMENT_ACTION_SUMMARY` (For Column B)**
+    * **CONTEXT:** Based on the consolidated attachment list for the pole and SPIDA design comparison.
+    * **LOGIC (Enhanced):**
+        * Primarily driven by comparing SPIDA "Measured Design" vs. "Recommended Design" for the pole's attachments.
+        * If new attachments are added in "Recommended Design" that were not in "Measured Design" -> "( I )nstalling".
+        * If attachments in "Measured Design" are absent in "Recommended Design" -> "( R )emoving" (though this scenario might be less common for this report's typical focus).
+        * If attachments exist in both designs but their properties (e.g., height) change significantly -> "( E )xisting" (implying modification).
+        * If no changes, new, or removed attachments, but attachments exist -> "( E )xisting".
+        * **Katapult Influence (Override/Validation):**
+            * If `katapult_pole_data.attributes.kat_work_type.button_added` or `work_type.button_added` is "Denied", this could potentially override the action to a specific note or status if the report design accommodated it. For now, prioritize SPIDA design comparison for Column B unless explicitly 'Denied' (which might imply no action or a specific "Denied" status if the column allowed).
+            * `katapult_pole_data.attributes.mr_state` can be used for internal validation or ancillary notes, but Column B's primary driver is the SPIDA design comparison.
+        * This is a summary status for the pole's overall make-ready work.
+
+13. **RULE: `POPULATE_FROM_TO_POLE_INFO` (Columns L-O context)**
+    * **CONTEXT:** After all span headers and attachment rows for the current pole are written. Add two new, distinct rows.
+    * **SOURCE FOR CONNECTED POLE:** Primarily `Katapult_data.connections`.
+        * Identify the primary span connected to the current `katapult_node_id`. (Logic for selecting the "primary" span if multiple exist needs to be defined, e.g., the one connecting to SPIDAcalc's `NEXT_POLE` concept, or a specific span type if applicable).
+        * Find the `PoleNumber.assessment` (converted to Canonical Pole ID) for the connected pole.
+    * **ROW 1 (From Pole):**
+        * Column L: "From Pole"
+        * Column M: [Current Operation's Pole # - from Column D data for this pole block]
+        * Columns N, O: Blank.
+    * **ROW 2 (To Pole):**
+        * Column L: "To Pole"
+        * Column M: [Connected Pole's Canonical Pole ID]
+        * Columns N, O: Blank.
+
+**Phase 4: Output Formatting and Finalization**
+
+14. **RULE: `APPLY_EXCEL_FORMATTING`**
+    * **MERGED_CELLS (Columns A-K):** For each pole's block of rows, the pole-level data in Columns A through K (written to the first row of this pole's data) must be merged vertically to span all rows used by that pole's span headers and attachments, i.e., down to the row *before* the "From Pole" row. Set vertical alignment (e.g., 'top').
+    * **HEADERS:** Format header rows (1-3) with bold text, merged cells (J1:K1, L1:O1, L2:N2), and text wrapping as specified.
+    * **DATA_FORMATS:**
+        * Heights: "X'-Y\"" string.
+        * PLA: "XX.XX%" string.
+        * "Yes/No": "YES (count)" or "NO".
+    * **COLUMN_WIDTHS:** Adjust column widths for readability.
+
+15. **RULE: `WRITE_EXCEL_FILE`**
+    * **ACTION:** Use `openpyxl` or a similar library to write the fully populated and formatted DataFrame/data to an `.xlsx` file.
+    * **FILENAME:** Use a descriptive name, e.g., "Make_Ready_Report_YYYYMMDD.xlsx".
+
+**Helper Function Rules (Implicit):**
+
+* **RULE: `CONVERT_HEIGHTS`**: Implement reliable meter-to-feet-inches and decimal_feet-to-feet-inches string conversion.
+* **RULE: `HANDLE_MISSING_DATA`**: For any data point not found, use "NA", an empty string, or an appropriate default based on report requirements.

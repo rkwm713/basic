@@ -1,0 +1,166 @@
+# README: Excel Report Generation, Formatting, and Dynamic Data Population
+
+This document provides instructions for an AI agent on how to generate the "Make-Ready Report" Excel file, focusing on its specific formatting requirements (headers, merged cells) and the logic for populating it with dynamic data derived from `SPIDAcalc.json` and `Katapult.json`.
+
+**Objective:** Create an Excel file that accurately reflects the defined column structure (detailed in Section II of this document) and data, guided by initial references like the now-superseded `MRReportTester.txt` and image examples (e.g., `docs/excel_ref.png`).
+
+**Core Excel Library Recommendation (for Python):** `openpyxl` (for `.xlsx` format as it handles formatting and merging well).
+
+---
+
+## I. Excel File and Sheet Setup
+
+1.  **Workbook and Sheet:**
+    * Create a new Excel workbook.
+    * The primary sheet should be named "Make Ready Report" (or as per `MRReportTester.htm` which uses "Sheet2" and "Sheet3" for its internal structure, but "Make Ready Report" is a more descriptive user-facing name).
+2.  **Default Font and Basic Styling (Optional):**
+    * Set a default font for the sheet if desired (e.g., Calibri, Arial).
+    * Basic gridlines should be visible.
+
+---
+
+## II. Header Row Formatting (Static Content)
+
+The report has a multi-row header structure. Use `openpyxl`'s cell merging capabilities.
+
+1.  **Row 1 (Main Headers):**
+    * **A1:** "Operation Number"
+    * **B1:** "Attachment Action:\n( I )nstalling\n( R )emoving\n( E )xisting" (Enable text wrapping for this cell)
+    * **C1:** "Pole Owner"
+    * **D1:** "Pole #"
+    * **E1:** "Pole Structure"
+    * **F1:** "Proposed Riser (Yes/No) &"
+    * **G1:** "Proposed Guy (Yes/No) &"
+    * **H1:** "PLA (%) with proposed attachment"
+    * **I1:** "Construction Grade of Analysis"
+    * **J1:** "Existing Mid-Span Data"
+        * **Merge:** Merge cells `J1:K1`. Center align text within merged cell.
+    * **L1:** "Make Ready Data"
+        * **Merge:** Merge cells `L1:O1`. Center align text within merged cell.
+
+2.  **Row 2 (Sub-Headers):**
+    * **J2:** "Height Lowest Com"
+    * **K2:** "Height Lowest CPS Electrical"
+    * **L2:** "Attachment Height"
+        * **Merge:** Merge cells `L2:N2`. Center align text within merged cell.
+    * **O2:** "Mid-Span\n(same span as existing)" (Enable text wrapping)
+
+3.  **Row 3 (Lowest-Level Sub-Headers):**
+    * **L3:** "Attacher Description"
+    * **M3:** "Existing"
+    * **N3:** "Proposed"
+    * **O3:** "Proposed"
+
+4.  **Styling for Headers (Recommended):**
+    * Apply bold font to all header cells (Rows 1-3).
+    * Consider a light background fill for header rows for better visual distinction.
+    * Ensure column widths are sufficient to display header text. Auto-sizing or pre-defined widths.
+
+---
+
+## III. Dynamic Data Population (Starting from Row 4)
+
+The core of the report involves iterating through poles ("Operations") and their associated attachments. One pole can span multiple rows if it has multiple attachments.
+
+**A. Overall Logic Per Pole ("Operation Number"):**
+
+1.  **Identify Pole:** For each pole to be reported (matched between SPIDAcalc and Katapult data).
+2.  **Determine Attachment Count:** Calculate `num_attachments_for_this_pole` by consolidating unique attachments from SPIDAcalc (Measured & Recommended designs) and Katapult field data for this pole. This count dictates how many rows the "Make Ready Data" section (Columns L-O) will occupy for this pole. If `num_attachments_for_this_pole` is 0, treat as 1 for formatting purposes (to show at least one line for the pole).
+3.  **Row Pointers:**
+    * `first_data_row_for_this_pole = current_excel_row_being_written`
+    * `last_data_row_for_this_pole = first_data_row_for_this_pole + max(1, num_attachments_for_this_pole) - 1`
+
+**B. Populating Pole-Level Data (Columns A-K):**
+
+* This data is generally the same for all rows belonging to a single pole.
+* Write this data into `first_data_row_for_this_pole` (cells `A[row]` to `K[row]`).
+    * **A[row]:** Operation Number (e.g., 1, 2, 3...).
+    * **B[row]:** Attachment Action summary (e.g., "( I )nstalling"). Derived logic.
+    * **C[row]:** Pole Owner (e.g., "CPS"). From SPIDA or Katapult.
+    * **D[row]:** Pole # (e.g., "PL410620"). From SPIDA or Katapult (matched).
+    * **E[row]:** Pole Structure (e.g., "40-4 Southern Pine"). Concatenated from SPIDA (height, class, species).
+    * **F[row]:** Proposed Riser (e.g., "NO", "YES (1)"). Count proposed risers in SPIDA Recommended Design.
+    * **G[row]:** Proposed Guy (e.g., "NO", "YES (1)"). Count proposed guys in SPIDA Recommended Design.
+    * **H[row]:** PLA (%) (e.g., "78.70%"). From SPIDA analysis (Recommended Design), formatted as percentage string.
+    * **I[row]:** Construction Grade (e.g., "C"). From SPIDA analysis.
+    * **J[row]:** Existing Mid-Span Lowest Com (e.g., "14'-10\""). From Katapult span data or manual input. Populate with "NA" if not found. Heights formatted as "X'-Y\"".
+    * **K[row]:** Existing Mid-Span Lowest CPS Electrical (e.g., "23'10\""). Similar to J. Populate with "NA" if not found.
+* **Cell Merging (for Columns A-K):**
+    * The pole-level data in columns A through K, written to `first_data_row_for_this_pole`, should be merged vertically to span all rows associated with this pole *before* the "From Pole" / "To Pole" rows.
+    * If `end_row_for_attachments` is the last row index used by any attachment or span header for the current pole, then merge `A[first_data_row_for_this_pole]:A[end_row_for_attachments]`, `B[first_data_row_for_this_pole]:B[end_row_for_attachments]`, and so on, up to `K[first_data_row_for_this_pole]:K[end_row_for_attachments]`.
+    * Set vertical alignment to 'top' or 'center' for these merged cells.
+    * `last_data_row_for_this_pole` will ultimately be `end_row_for_attachments`.
+
+**C. Populating Attachment-Level Data (Columns L-O):**
+
+* The application will iterate through groups of attachments (e.g., `span_groups`), where each group is defined by a span/direction (e.g., "Backspan", "Ref (North East) to service pole") derived primarily from SPIDAcalc `wireEndPoints`.
+* `current_excel_row_being_written` should be initialized to `first_data_row_for_this_pole -1` before this section, to be incremented for the first span header or attachment.
+* For each `span_group` in the pole's list of span groups:
+    1.  **Write Span Header Row (if `span_group.span_header` is present):**
+        *   `current_excel_row_being_written += 1`
+        *   **L`[current_excel_row_being_written]`:** `span_group.span_header` text (e.g., "Backspan", "Ref (North East) to service pole").
+        *   **M`[current_excel_row_being_written]`:** Blank (or `span_group.span_pole_id_if_applicable` if design requires it here - current examples show M-O blank).
+        *   **N`[current_excel_row_being_written]`:** Blank.
+        *   **O`[current_excel_row_being_written]`:** Blank.
+    2.  **Iterate `span_group.attachments_on_span`:**
+        *   For each `attachment` in this list:
+            *   If this is not the first item written for this pole (i.e., not the very first span header or attachment), `current_excel_row_being_written += 1`. If it's the first item for the pole, it uses the `first_data_row_for_this_pole`.
+            *   Let `current_attachment_excel_row` be `current_excel_row_being_written`.
+            *   **L`[current_attachment_excel_row]`:** `attachment.description` (e.g., "Neutral", "Charter/Spectrum Fiber Optic").
+            *   **M`[current_attachment_excel_row]`:** `attachment.existing_height` (e.g., "29'-6\""). Format as "X'-Y\"". Blank if new.
+            *   **N`[current_attachment_excel_row]`:** `attachment.proposed_height` (e.g., "24'-7\""). Format as "X'-Y\"". Blank if removed or no change and not new.
+            *   **O`[current_attachment_excel_row]`:** `attachment.midspan_proposed` (e.g., "21'-1\"", "UG", "NA").
+                *   **Fallback Logic for Mid-Span Proposed:** If direct mid-span values are not found:
+                    *   If the span type (from Katapult_data.connections[...].button, associated with this span group) is "underground_path", populate with "UG".
+                    *   For other aerial spans without data, use "NA".
+* After processing all span groups and their attachments, `last_data_row_for_this_pole` should be set to the final `current_excel_row_being_written`.
+* If a pole has no attachments or no defined span groups with attachments, Columns L-O for the `first_data_row_for_this_pole` would typically be "NA" or blank. The `max(1, ...)` logic in section A needs to account for the total number of rows generated by attachments and span headers.
+
+**D. Populating "From Pole" / "To Pole" Data:**
+
+* After all attachment groups and their individual attachment rows for the current pole are written (`last_data_row_for_this_pole` should point to the last of these).
+* Add two more rows:
+* **Row 1 (From Pole):**
+    * `current_excel_row_being_written = last_data_row_for_this_pole + 1`
+    * **L`[current_excel_row_being_written]`:** "From Pole" (static text)
+    * **M`[current_excel_row_being_written]`:** Pole # of the current operation (value from Column D of this pole's block).
+    * **N`[current_excel_row_being_written]`:** Blank.
+    * **O`[current_excel_row_being_written]`:** Blank.
+* **Row 2 (To Pole):**
+    * `current_excel_row_being_written = last_data_row_for_this_pole + 2`
+    * **L`[current_excel_row_being_written]`:** "To Pole" (static text)
+    * **M`[current_excel_row_being_written]`:** Pole # of the connected pole (from Katapult `connections` data).
+    * **N`[current_excel_row_being_written]`:** Blank.
+    * **O`[current_excel_row_being_written]`:** Blank.
+
+**E. Advancing for Next Pole/Operation:**
+
+* `current_excel_row_being_written` should now be `last_data_row_for_this_pole + 3` (or +2 if From/To Pole are on one line).
+* Add a blank row for spacing if desired before starting the next "Operation Number" block, then update `current_excel_row_being_written`.
+
+---
+
+## IV. Data Formatting and Conventions:
+
+1.  **Heights:** All attachment and mid-span heights must be formatted as strings in "X'-Y\"" format (e.g., "23'-7\"").
+    * Helper function needed: `convert_meters_to_ft_in_string(meters)` and `convert_decimalft_to_ft_in_string(decimal_feet)`.
+2.  **Percentages:** PLA should be formatted as a string with two decimal places and a "%" sign (e.g., "78.70%").
+3.  **"Yes/No" Fields:** For "Proposed Riser" and "Proposed Guy", format as "NO" or "YES (count)" (e.g., "YES (1)").
+4.  **"NA" or Blank:**
+    * If data for a field is genuinely not available or not applicable (e.g., "Existing Height" for a new attachment), use "NA", an empty string, or a specific placeholder like "UG" (for underground mid-span). Consistency is key. `MRReportTester.txt` uses "NA" for some existing mid-span data.
+5.  **Text Wrapping:** Enable text wrapping for cells with multi-line content (Column B header, Column O sub-header).
+6.  **Alignment:**
+    * Headers: Generally center-aligned.
+    * Numeric-like strings (heights, PLA): Right or center-aligned.
+    * Text descriptions: Left-aligned.
+    * Vertical alignment for merged cells (A-K for pole block): 'Top' or 'Center'.
+
+---
+
+## V. Final Steps:
+
+1.  **Column Widths:** After populating all data, adjust column widths to fit the content. `openpyxl` has methods for auto-sizing or setting explicit widths.
+    * Columns like "Pole Structure" (E) and "Attacher Description" (L) will likely need to be wider.
+2.  **Saving the File:** Save the workbook with a descriptive name (e.g., "Make_Ready_Report_YYYYMMDD.xlsx").
+
+By following these formatting and population instructions, the AI agent should be able to generate an Excel file that closely matches the desired layout and accurately represents the dynamic data extracted from the JSON sources. The use of a robust Excel library like `openpyxl` will be crucial for handling the formatting details, especially merged cells.

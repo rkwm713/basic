@@ -1,0 +1,327 @@
+Okay, here is a condensed JSON structure derived from your `CPS_6457E_03_Katapult.json`. This snippet focuses on the essential fields your AI agent would likely need to read for populating the Make-Ready Report, based on our previous discussions.
+
+This snippet will include, for a couple of example nodes (poles) and their relevant connections/attachments:
+
+  * Node identifiers and key attributes.
+  * Attachment details with field-measured heights.
+  * Connection details for "From Pole" / "To Pole" information.
+
+It omits extensive photo metadata, detailed time buckets, most `multi_attributes` unless directly relevant (like `mr_state`), and other fields not critical for the core report generation logic we've discussed.
+
+```json
+{
+  "description": "Essential JSON snippets from Katapult.json for the Make-Ready Report App. Paths are relative to the root of the JSON object.",
+  "nodes": {
+    "-OJ_PMjpiNrD4UyT0JSz": {
+      "attributes": {
+        "PoleNumber": {
+          "-Imported": "PL370858"
+        },
+        "pole_tag": {
+          "-Imported": {
+            "tagtext": "370858"
+          }
+        },
+        "pole_owner": {
+          "multi_added": "CPS Energy"
+        },
+        "height": {
+          "-OJy0DnjN_BPIXwoGvh0": "45"
+        },
+        "pole_class": {
+          "one": "2"
+        },
+        "birthmark_brand": {
+          "-OJj4wQRhE4mYkP1vFfH": {
+            "measured_groundline_circumference": "33",
+            "pole_species*": "SPC"
+          }
+        },
+        "mr_state": {
+          "auto_calced": "MR Resolved"
+        },
+        "kat_work_type": {
+          "-OL-T23Q1l-JgvxhHg2I": "Make Ready Simple"
+        },
+        "work_type": {
+          "-OL-T1_7Hg2F_kwEDXrP": "Make Ready Simple" 
+        },
+        "KAT_-_MR_responsible_party": {
+          "-OL-T23Q1l-JgvxhHg2J": "New Attacher"
+        },
+        "STRESS_-_MR_responsible_party": {
+          "-OL-T1_7Hg2F_kwEDXrQ": "New Attacher"
+        },
+        "kat_MR_notes": {
+          "-OL-T23Q1l-JgvxhHg2L": "Lower AT&T on pole"
+        },
+        "kat_MR_violations": {
+          "-OL-T23Q1l-JgvxhHg2K": "Power to Comm"
+        },
+        "stress_MR_notes": {
+          "-OL-T1_7Hg2F_kwEDXrS": "Charter:\nAdd down guy at 22\"-1 at 306.4° with a 22' Lead\nAdd Riser to allow for underground between SCID 080 and 082"
+        },
+        "final_passing_capacity_%": {
+          "-ONzZigRJczUNfA6wSoG": "41.95"
+        },
+        "existing_capacity_%": {
+          "-ONzZgPSoM6vjZpVuZCA": "42.43"
+        }
+      },
+      "latitude": 29.289827214686998,
+      "longitude": -98.40951323764607,
+      "attachments": {
+        "-OJixbZl-qH5J4f1mG6H": {
+          "attributes": {
+            "attachment_type": {
+              "button_added": "Cable"
+            },
+            "cable_type": {
+              "button_added": "Fiber Optic Com"
+            },
+            "company_name": {
+              "company_name": "AT&T"
+            },
+            "height_ft": {
+              "assessment": "23"
+            },
+            "height_in": {
+              "assessment": "7"
+            }
+          }
+        },
+        "-OJixcPtYkOQy40vO97P": {
+          "attributes": {
+            "attachment_type": {
+              "button_added": "Cable"
+            },
+            "cable_type": {
+              "button_added": "Telco Com"
+            },
+            "company_name": {
+              "company_name": "AT&T"
+            },
+            "height_ft": {
+              "assessment": "22"
+            },
+            "height_in": {
+              "assessment": "4"
+            }
+          }
+        },
+        "-OJixdgC6h-h40gL7n42": {
+          "attributes": {
+            "attachment_type": {
+              "button_added": "Com Drop"
+            },
+            "cable_type": {
+              "button_added": "Telco"
+            },
+            "company_name": {
+              "company_name": "AT&T"
+            },
+            "height_ft": {
+              "assessment": "21"
+            },
+            "height_in": {
+              "assessment": "5"
+            }
+          }
+        }
+      }
+    },
+    "-OJ_QN1ZoFM8EVIZXesW": {
+      "attributes": {
+        "PoleNumber": {
+          "-Imported": "PL398491"
+        },
+        "pole_tag": {
+           "-Imported": {
+            "tagtext": "398491"
+          }
+        },
+        "pole_owner": {
+          "multi_added": "CPS Energy"
+        },
+        "height": {
+          "-OJxxdgPcgo8W92xYN_C": "45"
+        },
+        "pole_class": {
+          "one": "2"
+        },
+        "birthmark_brand": {
+          "-OJid8pGpYX80RvvwO0N": {
+            "measured_groundline_circumference": "34",
+            "pole_species*": "SPC"
+          }
+        },
+        "mr_state": {
+          "auto_calced": "MR Resolved"
+        },
+        "kat_work_type": {
+          "-OL-O5PM1l-JgvxhHg2I": "Make Ready Simple"
+        },
+         "work_type": {
+          "-OL-O50-Hg2F_kwEDXrP": "Make Ready Simple"
+        },
+        "final_passing_capacity_%": {
+          "-ONzZihf2oHcPH25VAt4": "61.49"
+        },
+        "existing_capacity_%": {
+          "-ONzZgQnQUoGQ6Zw5M5-": "59.57"
+        }
+      },
+      "latitude": 29.2941155389155,
+      "longitude": -98.41622334468686,
+      "attachments": {
+        "-OJidT8v9Qf4K4iVbEAF": {
+          "attributes": {
+            "attachment_type": {"button_added": "Cable"},
+            "cable_type": {"button_added": "Neutral"},
+            "company_name": {"company_name": "CPS Energy"},
+            "height_ft": {"assessment": "27"},
+            "height_in": {"assessment": "1"}
+          }
+        },
+        "-OJidWqJ6t9J6D9_QW4p": {
+          "attributes": {
+            "attachment_type": {"button_added": "Cable"},
+            "cable_type": {"button_added": "Supply Fiber"},
+            "company_name": {"company_name": "CPS Communications"},
+            "height_ft": {"assessment": "25"},
+            "height_in": {"assessment": "8"}
+          }
+        },
+        "-OJidYjR25J_pS0vL0T_": {
+           "attributes": {
+            "attachment_type": {"button_added": "Down Guy"},
+            "cable_type": {"button_added": "Guy Wire"},
+            "company_name": {"company_name": "Charter"},
+            "height_ft": {"assessment": "22"},
+            "height_in": {"assessment": "4"}
+          }
+        },
+         "-OJid_gYj1G-02kC5-N0": {
+          "attributes": {
+            "attachment_type": {"button_added": "Cable"},
+            "cable_type": {"button_added": "Fiber Optic Com"},
+            "company_name": {"company_name": "AT&T"},
+            "height_ft": {"assessment": "21"},
+            "height_in": {"assessment": "4"}
+          }
+        },
+        "-OJideFh_T4m-PjTjL-l": {
+           "attributes": {
+            "attachment_type": {"button_added": "Cable"},
+            "cable_type": {"button_added": "Telco Com"},
+            "company_name": {"company_name": "AT&T"},
+            "height_ft": {"assessment": "20"},
+            "height_in": {"assessment": "4"}
+          }
+        }
+      }
+    },
+    "-OJ_QO1-g_v02hBjKOt6": {
+      "attributes": {
+        "PoleNumber": {"-Imported": "PL410620"},
+        "pole_tag": {"-Imported": {"tagtext": "410620"}},
+        "pole_owner": {"multi_added": "CPS Energy"},
+        "height": {"-OLtcBTnBtD-s0hy8Z1Z": "40"},
+        "pole_class": {"-OLtcB84D-s0hy8Z1Em": "4"},
+        "birthmark_brand": {"-OJicYW9XGCfmKUzT63j": {"measured_groundline_circumference": "34", "pole_species*": ""}},
+        "mr_state": {"auto_calced": "No MR"},
+        "kat_work_type": {"-OL-O-vVLBzrIS7wWrkz": "Make Ready Simple"},
+        "work_type": {"-OL-O1Ezy8Z1YElD_bwB": "Make Ready Simple"},
+        "final_passing_capacity_%": {"-ONzZihf2oHcPH25VAt5": "82.20"},
+        "existing_capacity_%": {"-ONzZgQnQUoGQ6Zw5M50": "71.51"}
+      },
+      "latitude": 29.294378991748594,
+      "longitude": -98.4166132708224,
+      "attachments": {
+        "-OJib68yYg1F3n_J-M1-": {
+          "attributes": {"attachment_type": {"button_added": "Cable"}, "cable_type": {"button_added": "Neutral"}, "company_name": {"company_name": "CPS Energy"}, "height_ft": {"assessment": "29"}, "height_in": {"assessment": "6"}}
+        },
+        "-OJibS75N-J6LwM0N5U-": {
+          "attributes": {"attachment_type": {"button_added": "Cable"}, "cable_type": {"button_added": "Supply Fiber"}, "company_name": {"company_name": "CPS Communications"}, "height_ft": {"assessment": "28"}, "height_in": {"assessment": "0"}}
+        },
+        "-OJibb-1n-o4J0t3H0h-": {
+          "attributes": {"attachment_type": {"button_added": "Cable"}, "cable_type": {"button_added": "Fiber Optic Com"}, "company_name": {"company_name": "AT&T"}, "height_ft": {"assessment": "23"}, "height_in": {"assessment": "7"}}
+        },
+        "-OJibc1Lw2G-oX4p2-x-": {
+          "attributes": {"attachment_type": {"button_added": "Cable"}, "cable_type": {"button_added": "Telco Com"}, "company_name": {"company_name": "AT&T"}, "height_ft": {"assessment": "22"}, "height_in": {"assessment": "4"}}
+        },
+        "-OJibdFw_l9z7P8v-D6-": {
+          "attributes": {"attachment_type": {"button_added": "Com Drop"}, "cable_type": {"button_added": "Telco"}, "company_name": {"company_name": "AT&T"}, "height_ft": {"assessment": "21"}, "height_in": {"assessment": "5"}}
+        }
+      }
+    }
+    // ... other nodes would follow a similar condensed structure
+  },
+  "connections": {
+    "-OJ_QO10emfZauaNUM4I": {
+      "attributes": {
+        "connection_type": {
+          "button_added": "aerial cable"
+        }
+      },
+      "button": "aerial_path",
+      "node_id_1": "-OJ_QO1-g_v02hBjKOt6", // Corresponds to PL410620
+      "node_id_2": "-OJ_QN1ZoFM8EVIZXesW", // Corresponds to PL398491
+      "sections": { // Only include sections if mid-span data is explicitly needed and present
+        "-OJickyPK4CwfpU0zVzz": {
+          "latitude": 29.294263960265503,
+          "longitude": -98.41644301681518,
+          "multi_attributes": {
+            "mr_state": {"auto_calced": "MR Resolved"}
+            // Hypothetical mid-span data:
+            // "midspan_clearance_charter_ft": { "assessment": "21" },
+            // "midspan_clearance_charter_in": { "assessment": "1" }
+          }
+        }
+      }
+    }
+    // ... other relevant connections
+  }
+}
+```
+
+**Explanation of Snippet Structure and Omissions:**
+
+  * **Top-Level `nodes`:** Contains objects for each pole, keyed by their internal Katapult `node_id`.
+
+      * **`attributes`:**
+          * `PoleNumber.assessment` or `pole_tag.tagtext`: For matching and display ("Pole \#").
+          * `pole_owner.multi_added`: For "Pole Owner".
+          * `height.one`, `pole_class.one`, `birthmark_brand.[id].pole_species*`: For "Pole Structure" details.
+          * `mr_state.auto_calced`, `kat_work_type.button_added`, `work_type.button_added`: To help determine "Attachment Action" and general status.
+          * `KAT_-_MR_responsible_party`, `STRESS_-_MR_responsible_party`, `kat_MR_notes`, `kat_MR_violations`, `stress_MR_notes`, `stress_MR_violations`: Retained as they are directly relevant to make-ready.
+          * `final_passing_capacity_%`, `existing_capacity_%`: Potentially useful context, though PLA from SPIDA is primary.
+          * *Omitted:* Many other specific attributes not directly used in the target report columns (e.g., `DLOC_number`, `OP_number`, `PL_number` if `PoleNumber` is the chosen key, detailed timestamps for all attributes, `electric_pole_tag` unless it *is* the Pole \#, `fiber_count`, `grounded`, extensive `time_bucket` details, `staking_corrections_required`, etc.).
+      * **`latitude`, `longitude`**: Basic location info.
+      * **`attachments`:** Object containing attachments on this pole.
+          * Each attachment is keyed by its internal `attachment_id`.
+          * **`attributes`:**
+              * `company_name.company_name` (or `button_added`): For "Attacher Description".
+              * `attachment_type.button_added`: For "Attacher Description".
+              * `cable_type.button_added`: For "Attacher Description".
+              * `height_ft.assessment`, `height_in.assessment`: Crucial for "Existing Height" from field data.
+              * *Omitted:* `wire_notes`, `measured_by`, `job_specific_type`, `last_updated_timestamp`, most `multi_added` flags unless directly relevant, photo IDs within attachments.
+
+  * **Top-Level `connections`:** Contains objects for each span, keyed by internal `connection_id`.
+
+      * **`attributes.connection_type.button_added`**: To understand if it's an aerial span, guy, etc.
+      * **`node_id_1`, `node_id_2`**: Essential for "From Pole" / "To Pole". The AI will need to map these Katapult internal node IDs back to the human-readable Pole Numbers.
+      * **`sections`**: Included very minimally. These would only be fully parsed if specific mid-span clearance attributes (like a hypothetical `midspan_clearance_charter_ft`) were consistently found within `multi_attributes` of a section. Often, this data is not explicitly available per attachment type within sections.
+          * *Omitted:* Most `_created` metadata, extensive `multi_attributes` within sections unless they are known to hold clearance values, photo IDs within sections.
+
+  * **Omitted Top-Level Keys from original Katapult JSON:**
+
+      * `geohash`: Used for map display, not directly for this tabular report.
+      * `job_auth_token`, `job_creator`, `job_owner`, `last_upload`, `project_folder`, `sharing`: Project metadata not needed for cell data.
+      * `layers`: GIS layer information.
+      * `map_styles`: Defines how data is visualized in Katapult, not needed for Excel data.
+      * `photo_folders`, `photo_summary`, `photos`: Extensive photo metadata not required for the primary report data fields.
+      * `traces.trace_data`: While useful for linking wires to types, the primary descriptive info for attachments in the report often comes from `nodes.node_id.attachments.attributes` or SPIDAcalc. If more detail is needed for "Attacher Description" than what's in the attachment attributes, then some parts of `trace_data` might be considered.
+      * `warning_reports`: Internal Katapult QA/QC information.
+
+This condensed structure should significantly reduce the size and complexity for your AI agent while retaining the necessary data points for the report columns we've identified. The agent will need to perform lookups (e.g., `node_id` to `PoleNumber`) using this data.

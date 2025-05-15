@@ -1,0 +1,193 @@
+```markdown
+# README: SPIDAcalc JSON Data Extraction for Make-Ready Report App
+
+This document outlines the key data snippets and their JSON paths within the `SPIDAcalc.json` file that are essential for the "Make-Ready Report" generation application. The application uses this data to populate specific columns in an Excel output, often in conjunction with data from a `Katapult.json` file.
+
+**Assumptions:**
+
+* The Python application will load the entire `SPIDAcalc.json` into a dictionary (e.g., `spidacalc_data`).
+* The primary iteration logic will loop through individual "poles" or "locations" within the SPIDAcalc data structure.
+* Specific "analysis cases" (e.g., for "Recommended Design" under "Light - Grade C" conditions) will be targeted for results like PLA.
+* "Measured Design" typically represents the existing state, and "Recommended Design" represents the proposed state.
+
+---
+
+## I. Project-Level Information
+
+This data is typically used once per report or for general context.
+
+* **Report Label/Project Name:**
+    * **Path:** `spidacalc_data['label']`
+    * **Example:** `"CPS_6457E_03"`
+    * **Use:** General report titling.
+* **Report Date (SPIDAcalc file date):**
+    * **Path:** `spidacalc_data['date']`
+    * **Example:** `"2025-04-15"`
+    * **Use:** Date for the report.
+* **Engineer:**
+    * **Path:** `spidacalc_data['engineer']`
+    * **Example:** `"Taylor Larsen"`
+    * **Use:** Report metadata.
+
+---
+
+## II. Pole-Level Information (Iterate per Pole/Location)
+
+The `SPIDAcalc.json` structures pole information within a `leads` array, each containing `locations`. A "location" generally corresponds to a pole.
+
+* **Accessing a specific Pole/Location:**
+    * Typically, you'll iterate through `spidacalc_data['leads'][0]['locations']`. Let `current_pole_location_data` be an item from this list (e.g., `spidacalc_data['leads'][0]['locations'][idx]`).
+
+* **Pole Identifier (Primary key for matching with Katapult - typically the Pole Number):**
+    * **Primary Path:** `current_pole_location_data['label']`
+        * **Example:** `"1-PL410620"`
+        * **Note for Matching:** This field often contains the Pole Number. It may require processing, such as stripping prefixes (e.g., "1-PL410620" should be processed to "PL410620") to match the Pole Number format used in Katapult (e.g., `PoleNumber.assessment`). The goal is to extract a canonical Pole ID (e.g., "PLXXXXXX").
+        * **Data Type (Expected):** String
+        * **Purpose in Report:** Source for "Pole #" (Column D) after normalization, used for matching with Katapult.
+    * **Secondary Path:** `current_pole_location_data['structure']['pole']['clientItemAlias']`
+        * **Example:** `"40-4"` (This is more of a class/height alias and generally not the primary matching key for Pole Number).
+        * **Data Type (Expected):** String
+        * **Purpose in Report:** Contextual information, not directly used for a primary column.
+    * **Use:** Critical for linking this pole's data with its counterpart in `Katapult.json` using the derived Pole Number.
+
+* **Pole Owner:**
+    * **Path:** `current_pole_location_data['structure']['pole']['owner']['id']`
+    * **Example:** `"CPS Energy"`
+    * **Data Type (Expected):** String
+    * **Purpose in Report:** Fallback source for "Pole Owner" (Column C) if not prioritized from Katapult.
+    * **Use:** "Pole Owner" column.
+
+* **Pole Structure Details (for "Pole Structure" column):**
+    * **Height (Value):** `current_pole_location_data['structure']['pole']['clientItem']['height']['value']`
+        * **Example:** `12.192000000000002` (in meters)
+        * **Note:** Needs conversion to feet for display (e.g., 40 ft).
+        * **Data Type (Expected):** Number
+        * **Purpose in Report:** Part of "Pole Structure" (Column E).
+    * **Height (Unit):** `current_pole_location_data['structure']['pole']['clientItem']['height']['unit']`
+        * **Example:** `"METRE"`
+        * **Data Type (Expected):** String
+        * **Purpose in Report:** Context for height conversion.
+    * **Class:** `current_pole_location_data['structure']['pole']['clientItem']['classOfPole']`
+        * **Example:** `"4"` (or `"3"`, etc.)
+        * **Data Type (Expected):** String or Number
+        * **Purpose in Report:** Part of "Pole Structure" (Column E).
+    * **Species:** `current_pole_location_data['structure']['pole']['clientItem']['species']`
+        * **Example:** `"Southern Pine"`
+        * **Data Type (Expected):** String
+        * **Purpose in Report:** Part of "Pole Structure" (Column E).
+    * **Use:** Concatenated to form "Pole Structure" string (e.g., "40-4 Southern Pine").
+
+* **Proposed Risers (Information for "Proposed Riser (Yes/No) &" column):**
+    * **Path:** Iterate `current_pole_location_data['designs'][design_idx_recommended]['structure']['equipments']`.
+    * **Condition:** Check if `equipment['clientItem']['type'] == "RISER"`.
+    * **Use:** Count occurrences to determine "YES (count)" or "NO". `design_idx_recommended` is the index for the "Recommended Design".
+
+* **Proposed Guys (Information for "Proposed Guy (Yes/No) &" column):**
+    * **Path:** `current_pole_location_data['designs'][design_idx_recommended]['structure']['guys']` (This is an array).
+    * **Use:** Count elements in the array to determine "YES (count)" or "NO".
+
+* **Pole Loading Analysis (PLA) & Construction Grade (for respective columns):**
+    * First, identify the correct analysis case for the "Recommended Design." Iterate `current_pole_location_data['analysis']`. Find the analysis object where `analysis['analysisCaseDetails']['name']` matches your target (e.g., "Light - Grade C" or a specific "Recommended Design" case). Let this be `target_analysis_case`.
+    * **PLA (%):**
+        * Within `target_analysis_case['results']`, find the result object where `result['component'] == "Pole"` and `result['analysisType'] == "STRESS"`.
+        * **Path to Value:** `result['actual']`
+        * **Example:** `82.204351...` (Format as percentage).
+    * **Construction Grade:**
+        * **Path:** `target_analysis_case['analysisCaseDetails']['constructionGrade']`
+        * **Example:** `"C"`
+
+---
+
+## III. Attachment-Level Information (Iterate per Attachment for a Pole)
+
+Attachments are found within specific designs for a pole: "Measured Design" for existing state, "Recommended Design" for proposed state.
+
+* **Accessing Designs:**
+    * `measured_design_data = current_pole_location_data['designs'][design_idx_measured]['structure']`
+    * `recommended_design_data = current_pole_location_data['designs'][design_idx_recommended]['structure']`
+    * (The indices `design_idx_measured` and `design_idx_recommended` need to be determined, often 0 and 1, or by checking `design['name']`).
+
+* **Iterating Attachments (Wires and Equipment):**
+    * Loop through `measured_design_data['wires']` and `measured_design_data['equipments']`.
+    * Loop through `recommended_design_data['wires']` and `recommended_design_data['equipments']`.
+    * Let `current_attachment` be an item from one of these lists.
+
+* **Attacher Description (for "Make Ready Data - Attacher Description" column):**
+    * **Primary Path:** `current_attachment['clientItem']['description']`
+    * **Secondary Path:** `current_attachment['clientItem']['size']`
+    * **Owner (for context):** `current_attachment['owner']['id']` (e.g., "AT&T", "CPS Energy")
+    * **Use:** Describe the attachment (e.g., "AT&T Fiber Optic Com", "CPS Energy Neutral").
+
+* **Existing Attachment Height (for "Make Ready Data - Attachment Height - Existing" column):**
+    * Source from attachments within `measured_design_data`.
+    * **Path to Value:** `current_attachment_from_measured_design['attachmentHeight']['value']` (in meters)
+        * **Example:** `8.9916`
+        * **Data Type (Expected):** Number
+        * **Purpose in Report:** Fallback for "Make Ready Data - Attachment Height - Existing" (Column M) if not prioritized from Katapult.
+    * **Path to Unit:** `current_attachment_from_measured_design['attachmentHeight']['unit']`
+        * **Example:** `"METRE"`
+        * **Data Type (Expected):** String
+        * **Purpose in Report:** Context for height conversion.
+    * **Note:** Convert to feet-inches string.
+
+* **Proposed Attachment Height (for "Make Ready Data - Attachment Height - Proposed" column):**
+    * Source from attachments within `recommended_design_data`.
+    * **Path to Value:** `current_attachment_from_recommended_design['attachmentHeight']['value']` (in meters)
+        * **Data Type (Expected):** Number
+        * **Purpose in Report:** Source for "Make Ready Data - Attachment Height - Proposed" (Column N).
+    * **Path to Unit:** `current_attachment_from_recommended_design['attachmentHeight']['unit']`
+        * **Data Type (Expected):** String
+        * **Purpose in Report:** Context for height conversion.
+    * **Note:** Convert to feet-inches string.
+
+* **Attachment Type/Usage Group (for categorization, e.g., "Com" vs "CPS Electrical"):**
+    * **Path:** `current_attachment['usageGroup']`
+    * **Examples:** `"COMMUNICATION_SERVICE"`, `"NEUTRAL"`, `"PRIMARY_CONDUCTOR"`, `"STREET_LIGHT"`.
+    * **Use:** Helps in finding "Lowest Com" or "Lowest CPS Electrical" attachments, or categorizing attachments. Also crucial for linking attachments to specific spans/directions (see Section IV).
+
+---
+
+## IV. Span Definition and Attachment Grouping (Primary Source for "Ref/Backspan" Headers)
+
+SPIDAcalc's `wireEndPoints` are critical for defining different spans originating from or passing through the current pole. These `wireEndPoints` will be used to group attachments and generate "Ref (Direction) to..." or "Backspan" sub-headers in the Excel report.
+
+* **Accessing Wire End Points for a Pole:**
+    * Path: `current_pole_location_data['designs'][design_idx]['structure']['wireEndPoints']` (Typically iterate through `Recommended Design`'s `wireEndPoints` to determine proposed attachment groupings).
+    * Let `current_wire_endpoint` be an item from this list.
+
+* **Key Fields within `current_wire_endpoint`:**
+    *   **`direction`**: Numeric value (degrees) representing the compass direction of the span.
+        *   **Use:** Convert to textual direction (N, NE, E, SE, S, SW, W, NW) for "Ref (...)" headers.
+        *   **Data Type (Expected):** Number.
+    *   **`type`**: Indicates the type of connected structure at the other end of this span.
+        *   **Examples:** `"PREVIOUS_POLE"`, `"NEXT_POLE"`, `"OTHER_POLE"`, `"ANCHOR_GUY"`, `"TAP_POLE"`.
+        *   **Use:** Determines the base label for the span header (e.g., "Backspan" for "PREVIOUS_POLE").
+        *   **Data Type (Expected):** String.
+    *   **`structureLabel`**: Often present if `type` is "OTHER_POLE" or similar. Can contain a pole number or a description (e.g., "service pole").
+        *   **Example:** `"PL401451"`, `"Service Pole"`
+        *   **Use:** Forms part of the "Ref (...) to [structureLabel]" header.
+        *   **Data Type (Expected):** String.
+    *   **`distance`**: Span length.
+        *   **Data Type (Expected):** Object with `value` and `unit`.
+        *   **Use:** Informational, not directly in a header.
+    *   **`wires`**: An array of wire/equipment IDs.
+        *   **Example:** `["wire_id_1", "equipment_id_abc"]`
+        *   **Use:** CRITICAL. This array lists all attachments (wires or equipment) that run along this specific `wireEndPoint` (span/direction). This is how attachments from Section III are grouped under the "Ref/Backspan" headers. The IDs here should match IDs found in `measured_design_data['wires']`, `measured_design_data['equipments']`, `recommended_design_data['wires']`, or `recommended_design_data['equipments']`.
+        *   **Data Type (Expected):** Array of strings.
+        *   **Purpose in Report:** Links attachments to specific span headers.
+
+* **Span Connectivity for "From Pole" / "To Pole" (Corroboration):**
+    * While Katapult is the primary source for the final "From Pole" / "To Pole" rows in the report, `wireEndPoints` (especially with `type` like "PREVIOUS_POLE" or "NEXT_POLE" and their `structureLabel` or derivable next pole ID) can be used to corroborate this information or understand the overall line connectivity.
+
+---
+
+**Important Notes for the AI Agent:**
+
+* **Path Variability:** The exact paths might vary slightly based on the specific version or configuration of the SPIDAcalc export. The snippets provided are based on `CPS_6457E_03_SPIDAcalc.json`.
+* **Missing Data:** Always check for the existence of keys and nested objects before trying to access their values to avoid `KeyError` exceptions. Implement fallback logic (e.g., return "NA" or a default value).
+* **Data Conversion:** Heights are typically in meters and need conversion to feet and inches (e.g., "X'-Y\""). Percentages need appropriate formatting.
+* **Design Layers:** Clearly distinguish between data from the "Measured Design" (for existing states) and "Recommended Design" (for proposed states) when extracting attachment details. The indices or names of these designs within the `designs` array must be correctly identified.
+* **Context is Key:** When extracting lists like attachments or analysis results, ensure you are doing so from the context of the *current pole* being processed in the main loop.
+
+This README should provide the AI agent with a solid reference for locating the necessary data points within the `SPIDAcalc.json` structure to fulfill the requirements of the Make-Ready Report application.
+```

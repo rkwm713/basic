@@ -5,7 +5,7 @@ Operation Number	"Attachment Action:
 												Attachment Height		"Mid-Span
 (same span as existing)"
 									Height Lowest Com	Height Lowest CPS Electrical	Attacher Description	Existing	Proposed	Proposed
-1	( I )nstalling	CPS	PL410620	40-4 Southern Pine	NO	NO	78.70%	C	"14'-10"""	"23'10"""	Neutral	"29'-6"""		
+1	( I )nstalling	CPS	PL410620	40-4 Southern Pine	NO	NO	82.20%	C	"14'-10"""	"23'10"""	Neutral	"29'-6"""		
 											CPS Supply Fiber	"28'-0"""		
 											Charter/Spectrum Fiber Optic		"24'-7"""	"21'-1"""
 											AT&T Fiber Optic Com	"23'-7"""		
@@ -13,7 +13,7 @@ Operation Number	"Attachment Action:
 											AT&T Com Drop	"21'-5"""		"15'-10"""
 									From Pole	To Pole				
 									PL410620	PL398491				
-2	( I )nstalling	CPS	PL398491	45-2 Southern Pine	YES (1)	YES (1)	62.08%	C	NA	NA	Neutral	"27'-1"""		
+2	( I )nstalling	CPS	PL398491	45-2 Southern Pine	YES (1)	YES (1)	61.49%	C	NA	NA	Neutral	"27'-1"""		
 											CPS Top Bracket Street Light	"26'-3"""	"24'-7"""	
 											CPS Supply Fiber	"25'-8"""		
 											CPS Bottom Bracket Street Light	"25'-7"""	"23'-11"""	
@@ -41,7 +41,7 @@ Operation Number	"Attachment Action:
 														
 									From Pole	To Pole				
 									PL398491	PL401451				
-3	( I )nstalling	CPS	PL389359	45-4 Southern Pine	YES (1)	YES (1)	84.86%	C	"17'-8"""	"22'-8"""	Neutral	"27'-3"""		
+3	( I )nstalling	CPS	PL389359	45-4 Southern Pine	YES (1)	YES (1)	92.00%	C	"17'-8"""	"22'-8"""	Neutral	"27'-3"""		
 											CPS Supply Fiber	"25'-9"""		
 											Charter/Spectrum Fiber Optic		"23'-0"""	"18'-8"""
 											Charter/Spectrum Down Guy		"23'-0"""	
@@ -56,7 +56,7 @@ Operation Number	"Attachment Action:
 											CPS Supply Fiber	"25'-9"""		
 									From Pole	To Pole	AT&T Fiber Optic Com	"22'-8"""	"22'-0"""	"20'-1"""
 									PL389359	PL404474	AT&T Telco Com	"21'-8"""	"21'-0"""	"17'-10"""
-4	( I )nstalling	CPS	PL404474	40-3 Southern Pine	NO	NO	59.84%	C	"19'-6"""	"23'-8"""	Neutral	"26'-0"""		
+4	( I )nstalling	CPS	PL404474	40-3 Southern Pine	NO	NO	62.45%	C	"19'-6"""	"23'-8"""	Neutral	"26'-0"""		
 											CPS Street Light Feed	"26'-0"""		"24'-6"""
 											CPS Supply Fiber	"24'-6"""		
 											CPS Top Bracket Street Light	"23'-6"""		
@@ -66,7 +66,7 @@ Operation Number	"Attachment Action:
 											AT&T Telco Com	"21'-7"""	"19'-7"""	"18'-0"""
 									From Pole	To Pole				
 									PL404474	PL900997				
-5	( I )nstalling	CPS	PL900997	45-2 Southern Pine	YES (1)	YES (1)	64.73%	C	NA	NA	Neutral	"27'-1"""		
+5	( I )nstalling	CPS	PL900997	45-2 Southern Pine	YES (1)	YES (1)	64.17%	C	NA	NA	Neutral	"27'-1"""		
 											CPS Street Light Feed	"27'-1"""		
 											CPS Supply Fiber	"25'-10"""		
 											CPS Drip Loop Secondary	"25'-8"""		
@@ -86,7 +86,7 @@ Operation Number	"Attachment Action:
 											AT&T Telco Com	"20'-6"""	"19'-6"""	"20'-6"""
 									From Pole	To Pole				
 									PL900997	PL398490				
-6	( I )nstalling	CPS	PL370858	45-2 Southern Pine	YES (1)	YES (1)	42.55%	C	"20'-8"""	"21'-7"""	Neutral	"26'-6"""		
+6	( I )nstalling	CPS	PL370858	45-2 Southern Pine	YES (1)	YES (1)	41.95%	C	"20'-8"""	"21'-7"""	Neutral	"26'-6"""		
 											CPS Supply Fiber	"25'-5"""		
 											Charter/Spectrum Fiber Optic		"22'-1"""	"22'-1"""
 											AT&T Fiber Optic Com	"22'-10"""	"21'-1"""	"20'-9"""

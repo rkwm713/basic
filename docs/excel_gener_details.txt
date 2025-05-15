@@ -1,8 +1,8 @@
 # README: Excel Report Generation, Formatting, and Dynamic Data Population
 
-This document provides instructions for an AI agent on how to generate the "Make-Ready Report" Excel file, focusing on its specific formatting requirements (headers, merged cells) and the logic for populating it with dynamic data derived from `SPIDAcalc.json` and `Katapult.json`.
+This document provides instructions for an AI agent on how to generate the "Make-Ready Report" Excel file, focusing on its specific formatting requirements (headers, merged cells) and the logic for populating it with dynamic data derived from `Katapult.json`.
 
-**Objective:** Create an Excel file that accurately reflects the defined column structure (detailed in Section II of this document) and data, guided by initial references like the now-superseded `MRReportTester.txt` and image examples (e.g., `docs/excel_ref.png`).
+**Objective:** Create an Excel file that accurately reflects the defined column structure (detailed in Section II of this document) and data, guided by the Katapult JSON data and image examples (e.g., `docs/excel_ref.png`).
 
 **Core Excel Library Recommendation (for Python):** `openpyxl` (for `.xlsx` format as it handles formatting and merging well).
 
@@ -64,8 +64,8 @@ The core of the report involves iterating through poles ("Operations") and their
 
 **A. Overall Logic Per Pole ("Operation Number"):**
 
-1.  **Identify Pole:** For each pole to be reported (matched between SPIDAcalc and Katapult data).
-2.  **Determine Attachment Count:** Calculate `num_attachments_for_this_pole` by consolidating unique attachments from SPIDAcalc (Measured & Recommended designs) and Katapult field data for this pole. This count dictates how many rows the "Make Ready Data" section (Columns L-O) will occupy for this pole. If `num_attachments_for_this_pole` is 0, treat as 1 for formatting purposes (to show at least one line for the pole).
+1.  **Identify Pole:** For each pole to be reported from Katapult data.
+2.  **Determine Attachment Count:** Calculate `num_attachments_for_this_pole` by consolidating unique attachments from Katapult field data for this pole (e.g., from `nodes.[node_id].attributes.attacher_list`, equipment, or measured wires in photos). This count dictates how many rows the "Make Ready Data" section (Columns L-O) will occupy for this pole. If `num_attachments_for_this_pole` is 0, treat as 1 for formatting purposes (to show at least one line for the pole).
 3.  **Row Pointers:**
     * `first_data_row_for_this_pole = current_excel_row_being_written`
     * `last_data_row_for_this_pole = first_data_row_for_this_pole + max(1, num_attachments_for_this_pole) - 1`
@@ -75,16 +75,16 @@ The core of the report involves iterating through poles ("Operations") and their
 * This data is generally the same for all rows belonging to a single pole.
 * Write this data into `first_data_row_for_this_pole` (cells `A[row]` to `K[row]`).
     * **A[row]:** Operation Number (e.g., 1, 2, 3...).
-    * **B[row]:** Attachment Action summary (e.g., "( I )nstalling"). Derived logic.
-    * **C[row]:** Pole Owner (e.g., "CPS"). From SPIDA or Katapult.
-    * **D[row]:** Pole # (e.g., "PL410620"). From SPIDA or Katapult (matched).
-    * **E[row]:** Pole Structure (e.g., "40-4 Southern Pine"). Concatenated from SPIDA (height, class, species).
-    * **F[row]:** Proposed Riser (e.g., "NO", "YES (1)"). Count proposed risers in SPIDA Recommended Design.
-    * **G[row]:** Proposed Guy (e.g., "NO", "YES (1)"). Count proposed guys in SPIDA Recommended Design.
-    * **H[row]:** PLA (%) (e.g., "78.70%"). From SPIDA analysis (Recommended Design), formatted as percentage string.
-    * **I[row]:** Construction Grade (e.g., "C"). From SPIDA analysis.
-    * **J[row]:** Existing Mid-Span Lowest Com (e.g., "14'-10\""). From Katapult span data or manual input. Populate with "NA" if not found. Heights formatted as "X'-Y\"".
-    * **K[row]:** Existing Mid-Span Lowest CPS Electrical (e.g., "23'10\""). Similar to J. Populate with "NA" if not found.
+    * **B[row]:** Attachment Action summary (e.g., "( I )nstalling", "( E )xisting"). This will primarily be "( E )xisting" unless Katapult data indicates proposed changes (e.g., from make-ready design attributes if present).
+    * **C[row]:** Pole Owner (e.g., "CPS"). From Katapult `nodes.[node_id].attributes.pole_owner.multi_added` or a primary owner field.
+    * **D[row]:** Pole # (e.g., "PL410620"). From Katapult `nodes.[node_id].attributes.PoleNumber` or `electric_pole_tag`.
+    * **E[row]:** Pole Structure (e.g., "40-4 Southern Pine"). Concatenated from Katapult `nodes.[node_id].attributes.pole_height.one`, `pole_class.one`, `pole_species.one`.
+    * **F[row]:** Proposed Riser (e.g., "NO", "YES (1)"). Derived from Katapult data (e.g., specific equipment like `riser` attribute on a node, or make-ready design notes).
+    * **G[row]:** Proposed Guy (e.g., "NO", "YES (1)"). Derived from Katapult `connections` where `button` is 'anchor' or `connection_type` is 'down guy'/'overhead guy', potentially differentiating existing vs. proposed based on creation timestamps or specific attributes.
+    * **H[row]:** PLA (%) (e.g., "82.20%"). From Katapult `nodes.[node_id].attributes.final_passing_capacity_%`, formatted as percentage string.
+    * **I[row]:** Construction Grade (e.g., "C"). This might not be directly available in Katapult. Populate with "NA" or a default if not derivable.
+    * **J[row]:** Existing Mid-Span Lowest Com (e.g., "14'-10\""). From Katapult span data (e.g., `connections.[connection_id].sections.[section_id].photos` measurements or attributes). Populate with "NA" if not found. Heights formatted as "X'-Y\"".
+    * **K[row]:** Existing Mid-Span Lowest CPS Electrical (e.g., "23'10\""). Similar to J, sourced from Katapult. Populate with "NA" if not found.
 * **Cell Merging (for Columns A-K):**
     * The pole-level data in columns A through K, written to `first_data_row_for_this_pole`, should be merged vertically to span all rows associated with this pole *before* the "From Pole" / "To Pole" rows.
     * If `end_row_for_attachments` is the last row index used by any attachment or span header for the current pole, then merge `A[first_data_row_for_this_pole]:A[end_row_for_attachments]`, `B[first_data_row_for_this_pole]:B[end_row_for_attachments]`, and so on, up to `K[first_data_row_for_this_pole]:K[end_row_for_attachments]`.
@@ -93,28 +93,26 @@ The core of the report involves iterating through poles ("Operations") and their
 
 **C. Populating Attachment-Level Data (Columns L-O):**
 
-* The application will iterate through groups of attachments (e.g., `span_groups`), where each group is defined by a span/direction (e.g., "Backspan", "Ref (North East) to service pole") derived primarily from SPIDAcalc `wireEndPoints`.
+* The application will iterate through attachments on the pole, potentially grouped by the connection/span they are associated with if relevant (e.g., "Backspan", "Span to PLXXXXX"). This grouping would be derived from Katapult `connections` data.
 * `current_excel_row_being_written` should be initialized to `first_data_row_for_this_pole -1` before this section, to be incremented for the first span header or attachment.
-* For each `span_group` in the pole's list of span groups:
-    1.  **Write Span Header Row (if `span_group.span_header` is present):**
+* For each logical group of attachments (e.g., per distinct span, or all pole-mounted equipment):
+    1.  **Write Span Header Row (Optional, if grouping by span):**
         *   `current_excel_row_being_written += 1`
-        *   **L`[current_excel_row_being_written]`:** `span_group.span_header` text (e.g., "Backspan", "Ref (North East) to service pole").
-        *   **M`[current_excel_row_being_written]`:** Blank (or `span_group.span_pole_id_if_applicable` if design requires it here - current examples show M-O blank).
-        *   **N`[current_excel_row_being_written]`:** Blank.
-        *   **O`[current_excel_row_being_written]`:** Blank.
-    2.  **Iterate `span_group.attachments_on_span`:**
-        *   For each `attachment` in this list:
+        *   **L`[current_excel_row_being_written]`:** Span description (e.g., "Span to PLXXXXX", "Pole Attachments").
+        *   **M, N, O:** Blank.
+    2.  **Iterate through attachments in this group:**
+        *   For each `attachment` identified in Katapult data (e.g., from `nodes.[node_id].attributes.attacher_list`, measured wires in `nodes.[node_id].photos.[photo_id].photofirst_data.wire`, or equipment):
             *   If this is not the first item written for this pole (i.e., not the very first span header or attachment), `current_excel_row_being_written += 1`. If it's the first item for the pole, it uses the `first_data_row_for_this_pole`.
             *   Let `current_attachment_excel_row` be `current_excel_row_being_written`.
-            *   **L`[current_attachment_excel_row]`:** `attachment.description` (e.g., "Neutral", "Charter/Spectrum Fiber Optic").
-            *   **M`[current_attachment_excel_row]`:** `attachment.existing_height` (e.g., "29'-6\""). Format as "X'-Y\"". Blank if new.
-            *   **N`[current_attachment_excel_row]`:** `attachment.proposed_height` (e.g., "24'-7\""). Format as "X'-Y\"". Blank if removed or no change and not new.
-            *   **O`[current_attachment_excel_row]`:** `attachment.midspan_proposed` (e.g., "21'-1\"", "UG", "NA").
+            *   **L`[current_attachment_excel_row]`:** `attachment.description` (e.g., "Neutral", "Charter/Spectrum Fiber Optic", "AT&T Telco Com"). Sourced from Katapult attribute names or wire labels.
+            *   **M`[current_attachment_excel_row]`:** `attachment.existing_height` (e.g., "29'-6\""). From Katapult photo measurements (`_measured_height`) or explicit height attributes. Format as "X'-Y\"". Blank if new.
+            *   **N`[current_attachment_excel_row]`:** `attachment.proposed_height` (e.g., "24'-7\""). From Katapult make-ready design attributes (e.g., `mr_move` on a wire, or specific proposed height fields if they exist). If no proposed change, this could be same as existing or blank. Format as "X'-Y\"".
+            *   **O`[current_attachment_excel_row]`:** `attachment.midspan_proposed` (e.g., "21'-1\"", "UG", "NA"). This would be derived from Katapult `connections.[connection_id].sections.[section_id]` data, potentially from photo measurements within a section or attributes like `mr_state` or notes.
                 *   **Fallback Logic for Mid-Span Proposed:** If direct mid-span values are not found:
-                    *   If the span type (from Katapult_data.connections[...].button, associated with this span group) is "underground_path", populate with "UG".
-                    *   For other aerial spans without data, use "NA".
-* After processing all span groups and their attachments, `last_data_row_for_this_pole` should be set to the final `current_excel_row_being_written`.
-* If a pole has no attachments or no defined span groups with attachments, Columns L-O for the `first_data_row_for_this_pole` would typically be "NA" or blank. The `max(1, ...)` logic in section A needs to account for the total number of rows generated by attachments and span headers.
+                    *   If the `connections.[connection_id].button` is "UG_poly_path", populate with "UG".
+                    *   For other aerial spans without explicit proposed mid-span data, use "NA".
+* After processing all attachments, `last_data_row_for_this_pole` should be set to the final `current_excel_row_being_written`.
+* If a pole has no attachments, Columns L-O for the `first_data_row_for_this_pole` would typically be "NA" or blank. The `max(1, ...)` logic in section A needs to account for the total number of rows generated by attachments and span headers.
 
 **D. Populating "From Pole" / "To Pole" Data:**
 
@@ -143,7 +141,7 @@ The core of the report involves iterating through poles ("Operations") and their
 ## IV. Data Formatting and Conventions:
 
 1.  **Heights:** All attachment and mid-span heights must be formatted as strings in "X'-Y\"" format (e.g., "23'-7\"").
-    * Helper function needed: `convert_meters_to_ft_in_string(meters)` and `convert_decimalft_to_ft_in_string(decimal_feet)`.
+    * Katapult heights are typically in decimal feet or inches. Helper function needed: `convert_decimalft_to_ft_in_string(decimal_feet)` or `convert_inches_to_ft_in_string(inches)`.
 2.  **Percentages:** PLA should be formatted as a string with two decimal places and a "%" sign (e.g., "78.70%").
 3.  **"Yes/No" Fields:** For "Proposed Riser" and "Proposed Guy", format as "NO" or "YES (count)" (e.g., "YES (1)").
 4.  **"NA" or Blank:**

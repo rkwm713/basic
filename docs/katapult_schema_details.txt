@@ -1,12 +1,12 @@
 ```markdown
 # README: Katapult JSON Data Extraction for Make-Ready Report App
 
-This document outlines the key data snippets and their JSON paths within the `Katapult.json` file (often referred to as `job_data` in the application code) that are essential for the "Make-Ready Report" generation application. The application uses this data to populate specific columns in an Excel output, often in conjunction with data from a `SPIDAcalc.json` file.
+This document outlines the key data snippets and their JSON paths within the `Katapult.json` file (often referred to as `job_data` in the application code) that are essential for the "Make-Ready Report" generation application. The application uses this data to populate specific columns in an Excel output.
 
 **Assumptions:**
 
 * The Python application will load the entire `Katapult.json` into a dictionary (e.g., `katapult_data` or `job_data`).
-* The primary iteration logic will loop through individual "poles" (referred to as "nodes" in Katapult JSON) that have been matched with poles from the SPIDAcalc data.
+* The primary iteration logic will loop through individual "poles" (referred to as "nodes" in Katapult JSON).
 * Katapult node IDs (e.g., `"-OJ_PMjpiNrD4UyT0JSz"`) are internal to the Katapult JSON and are used to link different parts of the data (nodes, connections, attachments).
 
 ---
@@ -16,20 +16,19 @@ This document outlines the key data snippets and their JSON paths within the `Ka
 Katapult stores pole information under the `nodes` key, where each key is a unique `node_id`.
 
 * **Accessing a specific Node/Pole:**
-    * First, you need to match a pole from SPIDAcalc (using its Pole Number) to a Katapult `node_id`.
-    * Once you have the `current_katapult_node_id`, the pole's data is at `katapult_data['nodes'][current_katapult_node_id]`. Let this be `current_node_data`.
+    * Once you have the `current_katapult_node_id` (e.g., by iterating through `katapult_data['nodes'].keys()`), the pole's data is at `katapult_data['nodes'][current_katapult_node_id]`. Let this be `current_node_data`.
 
-* **Pole Identifier (Primary key for matching with SPIDAcalc - typically the Pole Number):**
+* **Pole Identifier (Primary key for the report - typically the Pole Number):**
     * **Preferred Path:** `current_node_data['attributes']['PoleNumber']['assessment']`
         * **Example:** `"PL370858"`
-        * **Note:** This is the recommended field for obtaining the Pole Number for matching with SPIDAcalc data (after SPIDAcalc's pole identifier has been processed to a canonical format like "PLXXXXXX").
+        * **Note:** This is the recommended field for obtaining the Pole Number.
         * **Data Type (Expected):** String
-        * **Purpose in Report:** Primary identifier for "Pole #" (Column D), used for matching with SPIDAcalc.
+        * **Purpose in Report:** Primary identifier for "Pole #" (Column D).
     * **Alternative Path:** `current_node_data['attributes']['pole_tag']['tagtext']` (often contains the same Pole Number)
         * **Example:** `"PL370858"`
         * **Data Type (Expected):** String
         * **Purpose in Report:** Alternative source for "Pole #" (Column D).
-    * **Use:** This is the human-readable Pole # used for linking with SPIDAcalc data and for display in the "Pole #" column.
+    * **Use:** This is the human-readable Pole # for display in the "Pole #" column.
 
 * **Katapult Internal Node ID:**
     * **Path:** The key itself, `current_katapult_node_id`.
@@ -44,7 +43,7 @@ Katapult stores pole information under the `nodes` key, where each key is a uniq
     * **Path (Button Added):** `current_node_data['attributes']['pole_owner']['button_added']` (often an empty string if `multi_added` is used)
         * **Data Type (Expected):** String.
         * **Purpose in Report:** Alternative source for "Pole Owner" (Column C).
-    * **Use:** Can supplement or verify "Pole Owner" data from SPIDAcalc.
+    * **Use:** Source for "Pole Owner" data.
 
 * **Pole Structure Details (Field Verified - for "Pole Structure" column, or cross-referencing):**
     * **Height:** `current_node_data['attributes']['height']['one']`
@@ -54,7 +53,7 @@ Katapult stores pole information under the `nodes` key, where each key is a uniq
     * **Species/Material (often indirect):** Look under `current_node_data['attributes']['birthmark_brand']`. This is an object where keys are dynamic IDs. Iterate through its values:
         * `birthmark_data['pole_species*']` (Note the asterisk)
             * **Example:** `"SPC"` (Southern Pine Creosote - needs mapping to full name like "Southern Pine")
-    * **Use:** Can verify or supplement SPIDAcalc pole structure details. Height here is usually just the total length, not a specific formatted string.
+    * **Use:** Source for pole structure details. Height here is usually just the total length, not a specific formatted string.
 
 * **Geographic Coordinates (Informational):**
     * **Latitude:** `current_node_data['latitude']`
@@ -86,7 +85,7 @@ Attachments for a specific pole are found under `current_node_data['attachments'
     * **Path:** `current_katapult_attachment['attributes']['attachment_type']['button_added']`
         * **Example:** `"Cable"`, `"Equipment"`, `"Riser"`
     * **Path:** `current_katapult_attachment['attributes']['owner_tag_number']['tag']` (If tagged by owner)
-    * **Use:** "Make Ready Data - Attacher Description" (can be combined with SPIDA description).
+    * **Use:** "Make Ready Data - Attacher Description".
 
 * **Existing Attachment Height (Field Verified - for "Make Ready Data - Attachment Height - Existing" column):**
     * **Feet:** `current_katapult_attachment['attributes']['height_ft']['assessment']`
@@ -97,7 +96,7 @@ Attachments for a specific pole are found under `current_node_data['attachments'
         * **Example:** `"7"`
         * **Data Type (Expected):** String (representing a number).
         * **Purpose in Report:** Part of "Make Ready Data - Attachment Height - Existing" (Column M).
-    * **Use:** Combine to form feet-inches string (e.g., "23'-7\""). This is often the primary source for *existing* heights if field data is prioritized.
+    * **Use:** Combine to form feet-inches string (e.g., "23'-7\""). This is the primary source for *existing* heights.
 
 * **Attachment Specific Type (e.g., cable type):**
     * **Path:** `current_katapult_attachment['attributes']['cable_type']['button_added']`
@@ -128,7 +127,7 @@ Span information is crucial and found under the top-level `katapult_data['connec
         * **Example:** `"aerial_path"`, `"underground_path"`
     * **Path:** `current_connection_data['attributes']['connection_type']['button_added']`
         * **Example:** `"reference"`, `"Down Guy"`
-    * **Use:** Important for determining if a span is aerial (relevant for mid-span clearances) or underground. Can also be used to corroborate span information from SPIDAcalc's `wireEndPoints`, and potentially derive directional context if SPIDAcalc data is lacking (e.g., by calculating vector between `node_id_1` and `node_id_2` coordinates), though SPIDAcalc `wireEndPoints` is the primary source for "Ref/Backspan" header generation.
+    * **Use:** Important for determining if a span is aerial (relevant for mid-span clearances) or underground. This can help in generating "Ref/Backspan" type headers or determining if mid-span data is applicable.
 
 ---
 
@@ -152,13 +151,11 @@ This data is complex and often not directly stored as a simple "lowest com mid-s
 
 **Important Notes for the AI Agent:**
 
-* **Pole Matching is Prerequisite:** Before using Katapult data for a specific pole in the report, ensure it has been correctly matched to a SPIDAcalc pole using a common Pole Number.
 * **Dynamic Keys:** Many parts of the Katapult JSON (e.g., keys within `attributes`, `attachments`, `connections`, `sections`, `multi_attributes`) are dynamically generated IDs. You **must** iterate over `object.keys()` or `object.values()` rather than hardcoding these dynamic IDs.
 * **Data Hierarchy:** Understand that to get attachment heights, you go `nodes -> node_id -> attachments -> attachment_id -> attributes`. For span info, you go to the top-level `connections -> connection_id`, then use `node_id_1` and `node_id_2` to link back to `nodes`.
 * **Attribute Structure:** Most attributes are nested, e.g., `['attributes']['PoleNumber']['assessment']`. Check for the existence of all intermediate keys.
 * **Missing Data:** Katapult data can be sparse depending on collection methods. Always check for key existence and handle missing data gracefully (e.g., return "NA", `None`, or an empty string/list).
 * **Units:** Heights in Katapult are often explicitly in feet and inches (`height_ft`, `height_in`). Combine these as needed.
-* **Prioritization:** For fields like "Existing Attachment Height," decide if Katapult's field-verified data should override SPIDAcalc's "Measured Design" data.
 
-This README should guide the AI agent in navigating the `Katapult.json` to find the data needed for the Make-Ready Report, especially for pole matching, field-verified existing conditions, and critical span connectivity.
+This README should guide the AI agent in navigating the `Katapult.json` to find the data needed for the Make-Ready Report, especially for field-verified existing conditions and critical span connectivity.
 ```

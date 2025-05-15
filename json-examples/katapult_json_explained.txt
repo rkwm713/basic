@@ -295,7 +295,7 @@ It omits extensive photo metadata, detailed time buckets, most `multi_attributes
           * `height.one`, `pole_class.one`, `birthmark_brand.[id].pole_species*`: For "Pole Structure" details.
           * `mr_state.auto_calced`, `kat_work_type.button_added`, `work_type.button_added`: To help determine "Attachment Action" and general status.
           * `KAT_-_MR_responsible_party`, `STRESS_-_MR_responsible_party`, `kat_MR_notes`, `kat_MR_violations`, `stress_MR_notes`, `stress_MR_violations`: Retained as they are directly relevant to make-ready.
-          * `final_passing_capacity_%`, `existing_capacity_%`: Potentially useful context, though PLA from SPIDA is primary.
+          * `final_passing_capacity_%`, `existing_capacity_%`: Used for PLA (%) in the report.
           * *Omitted:* Many other specific attributes not directly used in the target report columns (e.g., `DLOC_number`, `OP_number`, `PL_number` if `PoleNumber` is the chosen key, detailed timestamps for all attributes, `electric_pole_tag` unless it *is* the Pole \#, `fiber_count`, `grounded`, extensive `time_bucket` details, `staking_corrections_required`, etc.).
       * **`latitude`, `longitude`**: Basic location info.
       * **`attachments`:** Object containing attachments on this pole.
@@ -321,7 +321,7 @@ It omits extensive photo metadata, detailed time buckets, most `multi_attributes
       * `layers`: GIS layer information.
       * `map_styles`: Defines how data is visualized in Katapult, not needed for Excel data.
       * `photo_folders`, `photo_summary`, `photos`: Extensive photo metadata not required for the primary report data fields.
-      * `traces.trace_data`: While useful for linking wires to types, the primary descriptive info for attachments in the report often comes from `nodes.node_id.attachments.attributes` or SPIDAcalc. If more detail is needed for "Attacher Description" than what's in the attachment attributes, then some parts of `trace_data` might be considered.
+      * `traces.trace_data`: Useful for linking wires to types. If more detail is needed for "Attacher Description" than what's in the attachment attributes, then some parts of `trace_data` might be considered.
       * `warning_reports`: Internal Katapult QA/QC information.
 
 This condensed structure should significantly reduce the size and complexity for your AI agent while retaining the necessary data points for the report columns we've identified. The agent will need to perform lookups (e.g., `node_id` to `PoleNumber`) using this data.

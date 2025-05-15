@@ -5,7 +5,7 @@ This document outlines potential error conditions, edge cases, and recommended h
 ## I. File Input/Output Errors
 
 1.  **JSON File Not Found:**
-    *   **Condition:** Specified SPIDAcalc or Katapult JSON file does not exist at the given path.
+    *   **Condition:** Specified Katapult JSON file does not exist at the given path.
     *   **Handling:**
         *   Log a critical error message specifying which file is missing.
         *   Terminate the application gracefully.
@@ -31,7 +31,6 @@ This document outlines potential error conditions, edge cases, and recommended h
 1.  **Missing Critical Keys/Fields in JSON:**
     *   **Condition:** Essential keys or nested fields expected by the extraction logic are absent from a record.
         *   Example: A Katapult node is missing `['attributes']['PoleNumber']`.
-        *   Example: A SPIDAcalc attachment is missing `['attachmentHeight']['value']`.
     *   **Handling (per field):**
         *   **Log a Warning:** Indicate the specific pole/attachment and the missing field.
         *   **Use Default/NA:** Populate the corresponding report field with "NA", an empty string, or a predefined default as specified in `excel_gener_details.txt` or `project_plan.txt`.
@@ -42,31 +41,6 @@ This document outlines potential error conditions, edge cases, and recommended h
         *   **Log a Warning:** Specify the field, the unexpected type, and the item being processed.
         *   **Attempt Conversion:** If applicable (e.g., string "123" to int 123).
         *   **Fallback to Default/NA:** If conversion fails or is not applicable, use "NA" or a default.
-3.  **Pole Matching Failures:**
-    *   **Condition:** A pole identifier from SPIDAcalc (after normalization) does not have a corresponding match in the Katapult data.
-    *   **Handling Options (to be decided based on requirements):**
-        *   **Option A (Skip Pole):** Log a warning and skip this SPIDAcalc pole entirely from the report.
-        *   **Option B (Report with Missing Katapult Data):** Include the pole in the report, populating SPIDAcalc-derived fields and using "NA" (or similar) for all fields that would normally come from Katapult. Log a warning.
-            *   **Details for Option B Implementation:** If Option B is implemented, the report should populate all SPIDAcalc-derivable fields for that pole. This includes:
-                *   Pole Owner (if SPIDAcalc is the fallback or primary source as per data prioritization rules)
-                *   Pole # (from SPIDAcalc)
-                *   Pole Structure (derived from SPIDAcalc data: height, class, species)
-                *   Proposed Riser (Yes/No) & (from SPIDAcalc Recommended Design)
-                *   Proposed Guy (Yes/No) & (from SPIDAcalc Recommended Design)
-                *   PLA (%) with proposed attachment (from SPIDAcalc analysis of Recommended Design)
-                *   Construction Grade of Analysis (from SPIDAcalc analysis)
-                *   Make Ready Data - Attacher Description (for attachments defined in SPIDAcalc designs)
-                *   Make Ready Data - Attachment Height - Existing (from SPIDAcalc Measured Design)
-                *   Make Ready Data - Attachment Height - Proposed (from SPIDAcalc Recommended Design)
-                *   Fields that are exclusively sourced from Katapult (e.g., field-verified existing mid-span heights if Katapult is primary, From/To Pole from Katapult connections, specific Katapult MR notes/violations if distinct from SPIDA) should be populated with 'NA' or an appropriate placeholder for these unmatched SPIDA poles.
-        *   **Recommendation:** Option B is often preferred as it highlights data gaps rather than silently omitting data. This should be configurable or clearly defined.
-4.  **Missing SPIDAcalc Design Sections:**
-    *   **Condition:** A SPIDAcalc pole location is missing the "Measured Design" or "Recommended Design" array/object within its `designs` list.
-    *   **Handling:**
-        *   Log a warning for the specific pole and missing design.
-        *   If "Measured Design" is missing, existing attachment data from SPIDA will be unavailable.
-        *   If "Recommended Design" is missing, proposed attachment data, PLA, proposed guys/risers from SPIDA will be unavailable.
-        *   Populate relevant fields with "NA". The "Attachment Action" logic might default to "( E )xisting" or require special handling.
 5.  **Empty Arrays/Lists where Data is Expected:**
     *   **Condition:** An array like `structure['guys']` is present but empty.
     *   **Handling:** This is often valid (e.g., "NO" guys). The logic (e.g., `count > 0`) should handle this naturally. No error needed unless the expectation is that it *must* contain items.
@@ -74,17 +48,17 @@ This document outlines potential error conditions, edge cases, and recommended h
 ## III. Edge Cases in Logic
 
 1.  **Ambiguous Pole Owner/Data from Multiple Sources:**
-    *   **Condition:** Both SPIDA and Katapult provide a "Pole Owner," and they differ. Or, Katapult's `pole_owner.multi_added` has multiple entries.
-    *   **Handling:** The prioritization rules in `project_plan.txt` should cover this (e.g., "Prioritize Katapult `multi_added[0]`"). If multiple Katapult owners, pick the first or join if appropriate (though typically it's one). Log a notice if discrepancies are significant and not covered by a clear rule.
+    *   **Condition:** Katapult's `pole_owner.multi_added` has multiple entries, or the primary pole owner field might be ambiguous if sourced from different internal Katapult attributes.
+    *   **Handling:** The prioritization rules in `project_plan.txt` (or equivalent Katapult-focused documentation) should cover this (e.g., "Prioritize Katapult `multi_added[0]` if present, otherwise a primary designated owner field"). If multiple Katapult owners are listed in `multi_added`, the first entry is typically chosen. Log a notice if discrepancies are significant and not covered by a clear rule.
 2.  **Multiple Katapult Connections (Spans) for "From/To Pole":**
     *   **Condition:** A Katapult node has multiple entries in `connections` linking it to different poles.
-    *   **Handling:** The `project_plan.txt` (Rule 13) notes: "Logic for selecting the 'primary' span if multiple exist needs to be defined (e.g., the one connecting to SPIDAcalc's `NEXT_POLE` concept, or a specific span type if applicable)." If no such rule can be reliably implemented, the first valid aerial connection could be chosen, with a warning logged if multiple viable spans exist.
+    *   **Handling:** The `project_plan.txt` (or equivalent Katapult-focused documentation, e.g., Rule 13 if still applicable) should define logic for selecting the 'primary' span if multiple exist (e.g., based on a specific span type like 'aerial_cable' vs 'reference', or connection attributes). If no such rule can be reliably implemented, the first valid aerial connection could be chosen, with a warning logged if multiple viable spans exist.
 3.  **Units Conversion Failures:**
-    *   **Condition:** A height value from SPIDA (meters) or Katapult (feet/inches) is present but malformed (e.g., non-numeric) and cannot be converted.
+    *   **Condition:** A height value from Katapult (expected in feet/inches) is present but malformed (e.g., non-numeric) and cannot be converted.
     *   **Handling:** Log a warning. Populate the relevant height field with "NA".
 4.  **No Attachments on a Pole:**
-    *   **Condition:** A pole has no attachments in SPIDA (Measured or Recommended) or Katapult.
-    *   **Handling:** `excel_gener_details.txt` specifies: "If `num_attachments_for_this_pole` is 0, treat as 1 for formatting purposes (to show at least one line for the pole)." Columns L-O for this single line would typically be "NA" or blank.
+    *   **Condition:** A pole has no attachments in Katapult.
+    *   **Handling:** `excel_gener_details.txt` (or equivalent Katapult-focused documentation) specifies: "If `num_attachments_for_this_pole` is 0, treat as 1 for formatting purposes (to show at least one line for the pole)." Columns for attachment details for this single line would typically be "NA" or blank.
 
 ## IV. Logging Recommendations
 

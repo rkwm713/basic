@@ -73,6 +73,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (Object.hasOwnProperty.call(data.nodes, nodeId)) {
                 const node = data.nodes[nodeId];
                 const attributes = node.attributes || {};
+
+                // PRIORITY 2: Implement Node Type Filtering
+                const nodeType = getAttributeValue(attributes.node_type, ['-Imported', 'button_added', 'one']); // Added 'one' as a common key
+                const allowedNodeTypes = ["pole", "Power", "Power Transformer", "Joint", "Joint Transformer"];
+                if (!nodeType || !allowedNodeTypes.includes(nodeType)) {
+                    continue; // Skip this node if its type is not in the allowed list
+                }
+
                 const allPhotosData = data.photos || {};
                 const allTracesData = data.traces && data.traces.trace_data ? data.traces.trace_data : {};
 
@@ -109,81 +117,80 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // --- Extract Attachment-Level Data (Columns L-O) ---
                 const attachments = [];
-                if (node.attachments) {
-                    for (const attachmentId in node.attachments) {
-                        const att = node.attachments[attachmentId];
-                        const attAttributes = att.attributes || {};
-                        
-                        const { existingHeightInches, mrMoveInches, traceId } = getPoleAttachmentDetails(attAttributes);
+                const processAttachmentItem = (item) => {
+                    const { existingHeightInches, mrMoveInches, traceId } = getPoleAttachmentDetails(item);
 
-                        let desc = 'NA';
-                        if (traceId && allTracesData[traceId]) {
-                            const traceInfo = allTracesData[traceId];
-                            const company = traceInfo.company || '';
-                            const cableType = traceInfo.cable_type || '';
-                            
-                            if (company && cableType) {
-                                desc = `${company} ${cableType}`;
-                            } else if (company) {
-                                desc = company;
-                            } else if (cableType) {
-                                desc = cableType;
+                    let desc = 'NA';
+                    if (traceId && allTracesData[traceId]) {
+                        const traceInfo = allTracesData[traceId];
+                        const company = traceInfo.company || '';
+                        const cableType = traceInfo.cable_type || '';
+                        
+                        if (company && cableType) {
+                            desc = `${company} ${cableType}`;
+                        } else if (company) {
+                            desc = company;
+                        } else if (cableType) {
+                            desc = cableType;
+                        }
+                    }
+                    // Fallback for description if traceId lookup fails or is incomplete
+                    // This might need adjustment based on whether 'wire' and 'equipment' objects have alternative attributes
+                    if (desc === 'NA' || desc.trim() === '') {
+                        // Example: if item has 'item_company_name' or 'item_type'
+                        // const companyNameAttr = item.item_company_name; 
+                        // const attachmentTypeAttr = item.item_type;
+                        // if (companyNameAttr) desc = companyNameAttr;
+                        // else if (attachmentTypeAttr) desc = attachmentTypeAttr;
+                        // For now, if trace lookup fails, it remains 'NA' or what was found
+                    }
+                    if (desc.trim() === '') desc = 'NA';
+
+                    const makeReadyExistingHeight = formatHeightFtIn(existingHeightInches);
+                    let makeReadyProposedHeight = '';
+                    if (mrMoveInches != null && !isNaN(mrMoveInches) && existingHeightInches != null) {
+                        makeReadyProposedHeight = formatHeightFtIn(existingHeightInches + mrMoveInches);
+                    } else if (existingHeightInches != null) {
+                        makeReadyProposedHeight = makeReadyExistingHeight;
+                    }
+
+                    const midSpanProposedHeight = getMidspanProposedHeight(traceId, mrMoveInches, nodeId, data.connections, allPhotosData, allTracesData);
+
+                    attachments.push({
+                        desc,
+                        existingHeight: makeReadyExistingHeight,
+                        proposedHeight: makeReadyProposedHeight,
+                        midspanProposed: midSpanProposedHeight
+                    });
+                };
+
+                if (node.photofirst_data) {
+                    if (node.photofirst_data.wire) {
+                        for (const wireId in node.photofirst_data.wire) {
+                            if (Object.hasOwnProperty.call(node.photofirst_data.wire, wireId)) {
+                                processAttachmentItem(node.photofirst_data.wire[wireId]);
                             }
                         }
-
-                        if (desc === 'NA' || desc.trim() === '') { 
-                            const companyNameAttr = getAttributeValue(attAttributes.company_name, ['company_name', 'button_added']);
-                            const attachmentTypeAttr = getAttributeValue(attAttributes.attachment_type, ['button_added']);
-                            const cableTypeAttr = getAttributeValue(attAttributes.cable_type, ['button_added']);
-
-                            if (companyNameAttr && cableTypeAttr) {
-                                desc = `${companyNameAttr} ${cableTypeAttr}`;
-                            } else if (companyNameAttr && attachmentTypeAttr) {
-                                desc = `${companyNameAttr} ${attachmentTypeAttr}`;
-                            } else if (companyNameAttr) {
-                                desc = companyNameAttr;
-                            } else if (cableTypeAttr) {
-                                desc = cableTypeAttr;
-                            } else if (attachmentTypeAttr) {
-                                desc = attachmentTypeAttr;
-                            } else {
-                                desc = 'NA'; 
+                    }
+                    if (node.photofirst_data.equipment) {
+                        for (const equipId in node.photofirst_data.equipment) {
+                            if (Object.hasOwnProperty.call(node.photofirst_data.equipment, equipId)) {
+                                processAttachmentItem(node.photofirst_data.equipment[equipId]);
                             }
                         }
-                         if (desc.trim() === '') desc = 'NA'; 
-
-                        // Column M: Attachment Heights - Existing (ft-in format)
-                        const makeReadyExistingHeight = formatHeightFtIn(existingHeightInches);
-
-                        // Column N: Attachment Heights - Proposed (ft-in format)
-                        let makeReadyProposedHeight = '';
-                        if (mrMoveInches != null && !isNaN(mrMoveInches) && existingHeightInches != null) {
-                            makeReadyProposedHeight = formatHeightFtIn(existingHeightInches + mrMoveInches);
-                        } else if (existingHeightInches != null) { 
-                            makeReadyProposedHeight = makeReadyExistingHeight; // Use the already formatted ft-in string
-                        }
-                        
-                        const midSpanProposedHeight = getMidspanProposedHeight(traceId, mrMoveInches, nodeId, data.connections, allPhotosData, allTracesData); 
-
-                        attachments.push({
-                            desc,
-                            existingHeight: makeReadyExistingHeight, 
-                            proposedHeight: makeReadyProposedHeight, 
-                            midspanProposed: midSpanProposedHeight    
-                        });
                     }
                 }
 
-                if (attachments.length === 0) { 
+                if (attachments.length === 0) {
                     attachments.push({ desc: 'NA', existingHeight: '', proposedHeight: '', midspanProposed: '' });
                 }
 
                 // --- Create Rows ---
-                const numRowsForPole = attachments.length + 2; 
+                const numRowsForPole = attachments.length + 2;
 
                 attachments.forEach((att, index) => {
                     const row = tbody.insertRow();
-                    if (index === 0) { 
+                    if (index === 0) {
                         addCell(row, operationNumberValue, numRowsForPole);
                         addCell(row, attachmentAction, numRowsForPole);
                         addCell(row, poleOwner, numRowsForPole);
@@ -204,8 +211,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Add "From Pole" / "To Pole" rows
                 const fromPoleRow = tbody.insertRow();
-                if (attachments.length === 0) { 
-                     addCell(fromPoleRow, operationNumberValue, 2, true); 
+                if (attachments.length === 0) { // This condition might need re-evaluation if the default attachment is always added
+                     addCell(fromPoleRow, operationNumberValue, 2, true);
                      addCell(fromPoleRow, attachmentAction, 2, true);
                      addCell(fromPoleRow, poleOwner, 2, true);
                      addCell(fromPoleRow, poleNumber, 2, true);
@@ -255,27 +262,25 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${feet}'-${inches}"`;
     }
 
-    // Helper to get details for a pole-mounted attachment
-    function getPoleAttachmentDetails(attachmentAttributes) {
+    // Helper to get details for a pole-mounted attachment (wire or equipment item)
+    function getPoleAttachmentDetails(item) { // item is a wire or equipment object
         let existingHeightInches = null;
-        const ftStr = getAttributeValue(attachmentAttributes.height_ft, ['assessment']);
-        const inStr = getAttributeValue(attachmentAttributes.height_in, ['assessment']);
-        if (ftStr != null || inStr != null) {
-            const ft = parseFloat(ftStr) || 0;
-            const inches = parseFloat(inStr) || 0;
-            if (!isNaN(ft) && !isNaN(inches)) {
-                existingHeightInches = (ft * 12) + inches;
+        if (item && item._measured_height != null) {
+            const height = parseFloat(item._measured_height);
+            if (!isNaN(height)) {
+                existingHeightInches = height; // Assuming _measured_height is already in inches
             }
         }
 
-        const mrMoveStr = getAttributeValue(attachmentAttributes.mr_move, ['assessment', 'one', 'button_added']);
-        const mrMoveInches = mrMoveStr != null ? parseFloat(mrMoveStr) : null;
-
-        const traceId = getAttributeValue(attachmentAttributes.trace_id, ['one']) ||
-                        getAttributeValue(attachmentAttributes._trace_id, ['one']) ||
-                        getAttributeValue(attachmentAttributes.trace, ['one']) ||
-                        getAttributeValue(attachmentAttributes._trace, ['one']);
-
+        let mrMoveInches = null;
+        if (item && item.mr_move != null) {
+            const move = parseFloat(item.mr_move);
+            if (!isNaN(move)) {
+                mrMoveInches = move; // Assuming mr_move is already in inches
+            }
+        }
+        
+        const traceId = (item && item._trace) ? item._trace : null;
 
         return { existingHeightInches, mrMoveInches, traceId };
     }
